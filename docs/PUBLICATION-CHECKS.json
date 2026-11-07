@@ -54,5 +54,16 @@
     "Errors": 0,
     "Skipped": 0,
     "Ignored": 0
-  }
+  },
+  "follow_up_checks": [
+    {
+      "name": "windows-short-path-regression",
+      "exit_code": 0
+    },
+    {
+      "name": "recovery-suite-after-path-fix",
+      "exit_code": 0,
+      "seconds": 38.308
+    }
+  ]
 }

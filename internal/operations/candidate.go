@@ -414,6 +414,11 @@ func prepareProbe(root string, p Paths) error {
 	if err != nil {
 		return err
 	}
+	// Match normalized state paths, including expanded Windows short names.
+	root, err = filepath.EvalSymlinks(root)
+	if err != nil {
+		return err
+	}
 	p, err = normalized(p)
 	if err != nil {
 		return err
