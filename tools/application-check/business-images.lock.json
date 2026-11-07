@@ -1,0 +1,22 @@
+{
+  "dolibarr": {
+    "tag": "dolibarr/dolibarr:24.0.1",
+    "version": "24.0.1",
+    "index_digest": "sha256:638727a1a035515b8f1e9c7694ee25315c4b79d618d4f19878efda977b20d49f",
+    "image": "dolibarr/dolibarr@sha256:125a5b6838e1b0f5c1e85678967026b1f72775bd3a08252b440c06799d2c19ce",
+    "platform": "linux/amd64",
+    "source": "https://github.com/Dolibarr/dolibarr-docker"
+  },
+  "prestashop": {
+    "tag": "prestashop/prestashop:9.2.0-apache",
+    "version": "9.2.0",
+    "index_digest": "sha256:09c36d25a22fd52f6ab876e8d7564c2b6830ba27236f50ef770dc6a650a3208e",
+    "image": "prestashop/prestashop@sha256:517ea9171e4c54bd58f52181ae52b02e4713b987ebd21a56db300fe54d7659c5",
+    "platform": "linux/amd64",
+    "source": "https://github.com/PrestaShop/docker",
+    "translation_assets": [
+      {"file":"sf-en-US.zip","sha256":"2cb9c7f9e7210ee652789bbcc91124a8e48648ee9149cb923b8b6946c7ee1a02"},
+      {"file":"sf-fr-FR.zip","sha256":"abb489b58afd409df0c6ceda6276652a3982fdc43ccd8ca6c76723254b066c57"}
+    ]
+  }
+}

@@ -1,0 +1,856 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>OpenWAF · Security console</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/app.js"></script>
+  </head>
+  <body>
+    <section id="login" class="login-screen" hidden>
+      <div class="login-card">
+        <div class="brand">
+          <span class="brand-mark">W</span>OpenWAF<span class="edition"
+            >COMMUNITY</span
+          >
+        </div>
+        <h1>Your application.<br />A stronger perimeter.</h1>
+        <p>Sign in to your local security console.</p>
+        <form id="login-form">
+		<label>Sign-in method<select id="login-method"><option value="token">Bootstrap / recovery token</option><option value="account">Local account</option></select></label>
+		<div id="account-login-fields" hidden><label>Username<input id="login-username" autocomplete="username" maxlength="64" disabled /></label><label>Password<input id="login-password" type="password" autocomplete="current-password" maxlength="256" disabled /></label><label>Authenticator code<input id="login-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" disabled /><small>Required after enrolling MFA.</small></label></div>
+		<div id="token-login-fields">
+          <label for="token">Administrator token</label
+          ><input
+            id="token"
+            type="password"
+            autocomplete="current-password"
+            required
+            minlength="32"
+            placeholder="Enter your administrator token"
+          /></div><button class="primary" type="submit">
+            Open security console <span>→</span>
+          </button>
+          <button id="passkey-signin" class="secondary" type="button" hidden>Sign in with a passkey</button><button id="oidc-signin" class="secondary" type="button" hidden>Sign in with organization SSO</button><p id="auth-origin-hint" hidden></p>
+          <p id="login-error" role="alert"></p>
+        </form>
+        <small
+          >The token is set through OPENWAF_ADMIN_TOKEN on the server.</small
+        >
+      </div>
+      <div class="login-art">
+        <div class="orbit"><span>W</span></div>
+        <h2>Built on trusted foundations.</h2>
+        <p>Coraza inspection engine · OWASP Core Rule Set</p>
+      </div>
+    </section>
+    <div id="shell" class="shell" hidden>
+      <aside class="sidebar">
+        <a class="brand" href="#overview"
+          ><span class="brand-mark">W</span>OpenWAF</a
+        ><span class="workspace-label">COMMUNITY EDITION</span>
+        <div class="appliance">
+          <span class="status-dot"></span>
+          <div>Local appliance<small id="side-mode">Connecting…</small></div>
+        </div>
+        <span class="nav-label">WORKSPACE</span>
+        <nav aria-label="Main navigation">
+          <button data-view="overview" class="active">
+            <span>◫</span>Overview</button
+          ><button data-view="application"><span>▤</span>Application</button
+          ><button data-view="policy"><span>◇</span>Security policy</button
+          ><button data-view="rules"><span>≡</span>Rules & exceptions</button
+          ><button data-view="events">
+            <span>⌁</span>Security events <b id="event-count">0</b></button
+          ><button data-view="history"><span>↶</span>Policy history</button
+          ><button data-view="system"><span>⚙</span>System</button><button data-view="access"><span>♙</span>Accounts &amp; access</button>
+        </nav>
+        <div class="sidebar-footer">
+          <span class="status-dot"></span> Coraza + OWASP CRS<small
+            >Open source. Independently built.</small
+          ><button id="logout">↪ Sign out</button>
+        </div>
+      </aside>
+      <div class="main">
+        <header class="topbar">
+          <div class="breadcrumb">
+            Workspace <span>/</span> <strong id="crumb">Overview</strong>
+          </div>
+          <div class="top-actions">
+            <span id="connection" class="connection">● Connecting</span
+            ><span class="avatar">AD</span><span id="identity-label">Administrator</span>
+          </div>
+        </header>
+        <main>
+          <div class="page-heading">
+            <div>
+              <div class="eyebrow">APPLICATION SECURITY</div>
+              <h1 id="page-title">Security overview</h1>
+              <p id="page-subtitle">
+                A clear view of your application perimeter.
+              </p>
+            </div>
+            <button id="refresh" class="secondary">↻ Refresh</button>
+          </div>
+          <div id="notice" class="notice" role="status" hidden></div>
+          <section data-page="overview">
+            <div class="overview-banner">
+              <div class="shield">◇</div>
+              <div>
+                <h2 id="protection-title">Loading protection status</h2>
+                <p id="protection-description">
+                  Reading the active security policy.
+                </p>
+              </div>
+              <span id="policy-badge" class="badge">—</span>
+            </div>
+            <div class="stats">
+              <article class="stat">
+                <div>Total requests <span class="stat-icon">↗</span></div>
+                <strong id="metric-requests">0</strong
+                ><small>Since this process started</small>
+              </article>
+              <article class="stat">
+                <div>Blocked requests <span class="stat-icon red">⊘</span></div>
+                <strong id="metric-blocked">0</strong
+                ><small id="block-rate">0% of incoming traffic</small>
+              </article>
+              <article class="stat">
+                <div>
+                  Detected requests <span class="stat-icon amber">◇</span>
+                </div>
+                <strong id="metric-detected">0</strong
+                ><small>Rule matches allowed upstream</small>
+              </article>
+              <article class="stat">
+                <div>Gateway errors <span class="stat-icon">⌁</span></div>
+                <strong id="metric-errors">0</strong
+                ><small>Connection or inspection failures</small>
+              </article>
+            </div>
+            <div class="overview-grid">
+              <article class="panel traffic">
+                <div class="panel-heading">
+                  <div>
+                    <h2>Traffic activity</h2>
+                    <p>Requests per minute</p>
+                  </div>
+                  <span class="muted">Last 60 minutes</span>
+                </div>
+                <div class="chart-legend">
+                  <span><i class="legend-green"></i>Total requests</span
+                  ><span><i class="legend-red"></i>Blocked</span
+                  ><span id="chart-peak">Peak: 0 / min</span>
+                </div>
+                <svg
+                  id="traffic-chart"
+                  viewBox="0 0 800 210"
+                  role="img"
+                  aria-label="Traffic in the last 60 minutes"
+                >
+                  <path
+                    class="grid-line"
+                    d="M0 20H800 M0 75H800 M0 130H800 M0 185H800"
+                  />
+                  <path id="chart-area" class="chart-area" />
+                  <path id="chart-line" class="chart-line" />
+                  <path id="chart-blocked" class="chart-blocked" />
+                </svg>
+                <div class="chart-axis">
+                  <span>60 min ago</span><span>30 min ago</span><span>Now</span>
+                </div>
+              </article>
+              <article class="panel posture">
+                <div class="panel-heading">
+                  <h2>Active protection</h2>
+                  <span class="tiny-label">LIVE POLICY</span>
+                </div>
+                <dl>
+                  <div>
+                    <dt>Inspection engine</dt>
+                    <dd id="engine-version">Coraza</dd>
+                  </div>
+                  <div>
+                    <dt>Core Rule Set</dt>
+                    <dd id="crs-version">—</dd>
+                  </div>
+                  <div>
+                    <dt>Paranoia level</dt>
+                    <dd id="posture-paranoia">—</dd>
+                  </div>
+                  <div>
+                    <dt>Response inspection</dt>
+                    <dd id="posture-response">—</dd>
+                  </div>
+                  <div>
+                    <dt>Excluded CRS rules</dt>
+                    <dd id="posture-exclusions">0</dd>
+                  </div>
+                  <div>
+                    <dt>Policy revision</dt>
+                    <dd id="posture-revision">—</dd>
+                  </div>
+                </dl>
+                <button class="text-button" data-go="policy">
+                  Manage security policy →
+                </button>
+              </article>
+            </div>
+            <article class="panel">
+              <div class="panel-heading">
+                <div>
+                  <h2>Recent security events</h2>
+                  <p>Actual rule matches and gateway interventions</p>
+                </div>
+                <button class="text-button" data-go="events">
+                  View all events →
+                </button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>TIME</th>
+                      <th>ACTION</th>
+                      <th>SOURCE IP</th>
+                      <th>REQUEST</th>
+                      <th>STATUS</th>
+                      <th>RULE</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-events"></tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+          <form id="config-form">
+            <section data-page="application" hidden>
+              <article class="panel settings">
+                <div class="panel-heading">
+                  <div>
+                    <h2>Protected application</h2>
+                    <p>
+                      Select an application to edit its upstream and isolated policy.
+                    </p>
+                  </div>
+                  <span class="badge">REVERSE PROXY</span>
+                </div>
+                <div class="field-grid">
+                  <label>Selected application<select id="application-selector" aria-label="Selected application"></select></label>
+                  <label>Application ID<input id="selected-application-id" readonly /><small>Stable identity used in security events.</small></label>
+                </div>
+                <button id="new-application" type="button" class="secondary">Add application</button>
+                <button id="remove-application" type="button" class="secondary">Remove application</button>
+                <p id="routing-state" class="muted"></p>
+                <div class="field-grid">
+                  <label
+                    >Application name<input
+                      name="name"
+                      required
+                      maxlength="100"
+                    /><small>A descriptive label for this policy.</small></label
+                  ><label
+                    >Upstream URL<input
+                      name="upstream"
+                      type="url"
+                      required
+                      placeholder="http://127.0.0.1:3000"
+                    /><small
+                      >HTTP or HTTPS; upstream TLS certificates are
+                      verified.</small
+                    ></label
+                  >
+                </div>
+                <fieldset id="upstream-pool-controls"><legend>Upstream pool</legend><label><input id="pool-enabled" type="checkbox" /> Use a bounded backend pool</label><p class="muted">Round-robin selection with passive failure detection. Observed 5xx/connection failures open a circuit. Recovery allows one trial after cooldown. Application-level request replay is disabled.</p><div id="pool-settings" hidden><div class="field-grid"><label>Failure threshold<input id="pool-threshold" type="number" min="1" max="10" value="3" /></label><label>Cooldown seconds<input id="pool-cooldown" type="number" min="1" max="300" value="30" /></label><label>Response-header timeout seconds<input id="pool-header-timeout" type="number" min="1" max="120" value="30" /></label></div><div id="pool-backends"></div><button id="add-pool-backend" class="secondary" type="button">Add backend</button></div><p id="pool-observations" class="muted">Backend observations load after activation.</p></fieldset>
+                <label>Allowed hostnames<input name="hostnames" maxlength="4096" placeholder="app.example.com, www.example.com" /><small>Exact DNS names or bare IPs, separated by commas. Saving the first bindings enables hostname routing for this deployment.</small></label>
+                <div class="info-box">
+                  The application listener is configured at startup. Management
+                  routes are served only on the separate loopback console
+                  listener.
+                </div>
+              </article>
+              <article class="panel settings">
+                <h2>Traffic handling</h2>
+                <p class="muted">
+                  Request bodies are bounded and inspected before forwarding.
+                  Client identity follows the configured proxy trust profile.
+                </p>
+                <div class="field-grid">
+                  <label
+                    >Maximum request body (bytes)<input
+                      name="request_limit"
+                      type="number"
+                      min="1024"
+                      max="67108864"
+                      required
+                    /><small
+                      >1 KiB–64 MiB. Oversized requests receive HTTP 413 in
+                      every mode.</small
+                    ></label
+                  ><label
+                    >Maximum inspected response (bytes)<input
+                      name="response_limit"
+                      type="number"
+                      min="1024"
+                      max="16777216"
+                      required
+                    /><small
+                      >1 KiB–16 MiB. Applies when response body inspection is
+                      enabled.</small
+                    ></label
+                  >
+                </div>
+              </article>
+            </section>
+            <section data-page="policy" hidden>
+		<article class="panel settings">
+		<h2>Rate controls and admission</h2><p id="admission-share" class="muted"></p>
+		<p class="muted">Schema-2 applications receive equal fixed shares of process concurrency and buffer capacity. Zero disables a rate or uses the application share for concurrency. Limits apply in every inspection mode. Client identity follows the configured proxy trust profile.</p>
+		<div class="field-grid">
+		<label>Application requests / second<input name="traffic_requests_per_second" type="number" min="0" max="100000" value="0" required /></label>
+		<label>Application burst<input name="traffic_burst" type="number" min="0" max="100000" value="0" required /></label>
+		<label>Client requests / second<input name="traffic_client_requests_per_second" type="number" min="0" max="100000" value="0" required /></label>
+		<label>Client burst<input name="traffic_client_burst" type="number" min="0" max="100000" value="0" required /></label>
+		<label>Client request-body rate (KiB/s, 0 disables)<input name="traffic_client_body_kib_per_second" type="number" min="0" max="1048576" value="0" required /></label>
+		<label>Client request-body burst (KiB)<input name="traffic_client_body_burst_kib" type="number" min="0" max="8388608" value="0" required /></label>
+		<label>Application concurrent requests<input name="traffic_max_concurrent" type="number" min="0" max="1024" value="0" required /></label>
+		<label>Client concurrent requests<input name="traffic_max_client_concurrent" type="number" min="0" max="1024" value="0" required /></label>
+		<label>Client buffer budget (MiB; 0 disables)<input name="traffic_max_client_buffer_mib" type="number" min="0" max="8192" value="0" required /></label>
+		<label>Admission wait (milliseconds)<input name="traffic_admission_wait_ms" type="number" min="0" max="1000" value="0" required /></label>
+		</div><p class="muted">Rate and burst must both be positive or both zero. Client tables hold at most 1,024 identities per application. Rate rejection returns 429. Admission rejection returns 503. Both include Retry-After.</p>
+		</article>
+              <article class="panel settings">
+                <div class="panel-heading">
+                  <div>
+                    <h2>Inspection policy</h2>
+                    <p>
+                      Changes take effect for new requests after successful
+                      compilation and save.
+                    </p>
+                  </div>
+                  <span class="badge">OWASP CRS</span>
+                </div>
+                <div class="field-grid">
+                  <label
+                    >Operating mode<select name="mode">
+                      <option value="enforcing">
+                        Enforcing · inspect and block
+                      </option>
+                      <option value="detection">
+                        Detection · inspect and log
+                      </option>
+                      <option value="disabled">
+                        Disabled · bypass rule inspection
+                      </option></select
+                    ><small
+                      >Detection preserves visibility while you tune false
+                      positives.</small
+                    ></label
+                  ><label
+                    >Paranoia level<select name="paranoia">
+                      <option value="1">PL 1 · baseline protection</option>
+                      <option value="2">PL 2 · additional checks</option>
+                      <option value="3">PL 3 · strict inspection</option>
+                      <option value="4">
+                        PL 4 · maximum sensitivity
+                      </option></select
+                    ><small
+                      >Higher levels need application-specific tuning.</small
+                    ></label
+                  ><label
+                    >Inbound anomaly threshold<input
+                      name="inbound_threshold"
+                      type="number"
+                      min="1"
+                      max="100"
+                      required
+                    /><small
+                      >CRS default: 5. Raising this reduces blocking
+                      sensitivity.</small
+                    ></label
+                  ><label
+                    >Outbound anomaly threshold<input
+                      name="outbound_threshold"
+                      type="number"
+                      min="1"
+                      max="100"
+                      required
+                    /><small
+                      >CRS default: 4. Used by response rules.</small
+                    ></label
+                  >
+                </div>
+              </article>
+              <article class="panel settings">
+                <div class="toggle-row">
+                  <div>
+                    <h2>Response body inspection</h2>
+                    <p>
+                      Inspect HTML, plain text, JSON, and XML before delivery.
+                    </p>
+                  </div>
+                  <label class="switch"
+                    ><input
+                      name="inspect_response"
+                      type="checkbox"
+                    /><span></span
+                    ><b class="sr-only">Enable response inspection</b></label
+                  >
+                </div>
+                <div class="info-box">
+                  Enabled inspection buffers eligible responses up to your
+                  limit. Oversized or unexpectedly compressed eligible responses
+                  fail with HTTP 502. Leave off for streaming text responses.
+                  CRS can block leakage; automatic data redaction is not
+                  implemented.
+                </div>
+              </article>
+            </section>
+            <section data-page="rules" hidden>
+              <article class="panel settings">
+                <div class="panel-heading">
+                  <div>
+                    <h2>Scoped exceptions</h2>
+                    <p>
+                      Permit a specific field on one exact path and HTTP method.
+                    </p>
+                  </div>
+                  <button id="add-exception" class="secondary" type="button">
+                    + Add exception
+                  </button>
+                </div>
+                <p class="muted">
+                  Exceptions affect selected request-body-phase rules in this
+                  application. If a field name occurs in both the query and
+                  body, the exception is withheld and the request stays fully
+                  inspected. Save & apply activates changes.
+                </p>
+                <div id="scoped-exceptions" class="exception-list"></div>
+              </article>
+              <article class="panel settings">
+                <div class="panel-heading">
+                  <div>
+                    <h2>CRS rule exceptions</h2>
+                    <p>
+                      Exclude individual rule IDs after investigating a false
+                      positive.
+                    </p>
+                  </div>
+                  <span class="tiny-label">GLOBAL SCOPE</span>
+                </div>
+                <label
+                  >Excluded rule IDs<textarea
+                    name="exclusions"
+                    rows="3"
+                    placeholder="Example: 942100, 941100"
+                  ></textarea
+                  ><small
+                    >Comma or whitespace separated CRS IDs. Exclusions apply
+                    across this application and reduce protection.</small
+                  ></label
+                >
+                <div id="exclusion-chips" class="chips"></div>
+              </article>
+              <article class="panel settings">
+                <h2>Custom SecLang rules</h2>
+                <p class="muted">
+                  Real Coraza rules, evaluated before CRS blocking decisions.
+                  Use IDs 10000–99999 to avoid bundled rules.
+                </p>
+                <label class="sr-only" for="custom-rules"
+                  >Custom security rules</label
+                ><textarea
+                  id="custom-rules"
+                  name="custom_rules"
+                  rows="10"
+                  spellcheck="false"
+                  placeholder='SecRule REQUEST_URI "@beginsWith /private" "id:10001,phase:1,deny,status:403,log,msg:Private route blocked"'
+                ></textarea
+                ><small
+                  >One SecRule or SecAction per line. Include, filesystem
+                  directives, ctl, and exec are unavailable in this editor. All
+                  rules must compile before a policy can be saved.</small
+                >
+              </article>
+            </section>
+            <div id="save-bar" class="save-bar" hidden>
+              <div>
+                <strong id="draft-status">Active policy</strong
+                ><small id="revision-label">Revision —</small>
+              </div>
+              <label class="change-reason"
+                >Change reason<input
+                  id="change-reason"
+                  maxlength="500"
+                  placeholder="Describe why this policy is changing"
+              /></label>
+              <button id="discard" type="button" class="secondary">
+                Discard changes</button
+              ><button id="validate" type="button" class="secondary">
+                Validate policy</button
+              ><button id="save" type="submit" class="primary">
+                Save & apply
+              </button>
+            </div>
+          </form>
+          <section data-page="events" hidden>
+            <article class="panel">
+              <div class="panel-heading">
+                <div>
+                  <h2>Security event explorer</h2>
+                  <p>
+                    Durable security events · search retained history and load
+                    older records
+                  </p>
+                </div>
+                <button id="export-events" class="secondary">
+                  Export loaded JSON
+                </button>
+              </div>
+              <div class="filters">
+                <input
+                  id="event-search"
+                  type="search"
+                  maxlength="128"
+                  placeholder="Search IP, path, message, or rule ID"
+                  aria-label="Search events"
+                /><select id="event-action" aria-label="Filter action">
+                  <option value="">All actions</option>
+                  <option value="blocked">Blocked</option>
+                  <option value="detected">Detected</option>
+                  <option value="error">Gateway error</option>
+                  <option value="overloaded">Capacity exceeded</option>
+		<option value="rate_limited">Rate limited</option>
+                  <option value="unrouted">Hostname rejected</option>
+                  <option value="cancelled">Client cancelled</option></select
+                ><input id="event-application" list="application-filter-options" maxlength="64" placeholder="Application ID (optional)" aria-label="Filter application ID" /><datalist id="application-filter-options"></datalist><span id="filtered-count" class="muted"></span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>TIME</th>
+                      <th>ACTION</th>
+                      <th>SOURCE IP</th>
+                      <th>REQUEST</th>
+                      <th>STATUS</th>
+                      <th>RULE</th>
+                    </tr>
+                  </thead>
+                  <tbody id="all-events"></tbody>
+                </table>
+              </div>
+              <button id="more-events" class="secondary" hidden>
+                Load older events
+              </button>
+            </article>
+          </section>
+          <section data-page="history" hidden>
+            <article class="panel">
+              <div class="panel-heading">
+                <div>
+                  <h2>Committed policy revisions</h2>
+                  <p>
+                    Compare previous settings and restore them as a new
+                    revision.
+                  </p>
+                </div>
+                <button id="reload-history" class="secondary">
+                  ↻ Reload history
+                </button>
+              </div>
+              <div class="info-box history-info">
+                History survives restarts. A rollback validates the earlier
+                policy and creates a new revision; it preserves the audit trail.
+                Keep the active policy and its .history directory together when
+                backing up.
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>REVISION</th>
+                      <th>TIME</th>
+                      <th>ACTOR</th>
+                      <th>REASON</th>
+                      <th>ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody id="policy-history"></tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+          <section data-page="system" hidden>
+            <article class="panel settings">
+              <h2>Appliance information</h2>
+              <dl class="system-details">
+                <div>
+                  <dt>Runtime</dt>
+                  <dd>Single Go binary · embedded console</dd>
+                </div>
+                <div>
+                  <dt>Uptime</dt>
+                  <dd id="uptime">—</dd>
+                </div>
+                <div>
+                  <dt>Configuration</dt>
+                  <dd>
+                    Versioned JSON · durable revision history · atomic
+                    replacement
+                  </dd>
+                </div>
+                <div>
+                  <dt>Event retention</dt>
+                  <dd id="retention-info">—</dd>
+                </div>
+                <div>
+                  <dt>Event storage health</dt>
+                  <dd id="storage-health">—</dd>
+                </div>
+                <div>
+                  <dt>Event accounting</dt>
+                  <dd id="event-accounting">—</dd>
+                </div>
+                <div>
+                  <dt>Collector delivery</dt>
+                  <dd id="export-health">—</dd>
+                </div>
+                <div>
+                  <dt>Inspection capacity</dt>
+                  <dd id="resource-health">—</dd>
+                </div>
+                <div><dt>Client identity</dt><dd id="proxy-identity">—</dd></div>
+                <div>
+                  <dt>Administration</dt>
+                  <dd>Loopback only · authenticated eight-hour sessions</dd>
+                </div>
+                <div><dt>Administration journal</dt><dd id="audit-health">—</dd></div>
+		<div><dt>Independent audit delivery</dt><dd id="audit-export-health">—</dd></div>
+                <div><dt>Certificate lifecycle</dt><dd id="certificate-health">—</dd></div>
+                <div><dt>Certificate expires</dt><dd id="certificate-expiry">—</dd></div>
+              </dl>
+              <button id="export-config" class="secondary">
+                Export active configuration
+              </button>
+              <button id="reload-certificate" class="secondary" disabled>Reload certificate files</button>
+            </article>
+            <article class="panel settings">
+              <h2>Administration activity</h2>
+              <p class="muted">Recent journal entries include change intents and outcomes. Policy revision and correlation identify related entries.</p>
+              <button id="refresh-audit" class="secondary">Refresh activity</button>
+              <button id="export-audit" class="secondary">Export loaded activity</button>
+              <div class="table-wrap"><table><thead><tr><th>TIME</th><th>OPERATION</th><th>ACTOR</th><th>OUTCOME</th><th>REVISION</th></tr></thead><tbody id="audit-entries"></tbody></table></div>
+            </article>
+            <article class="panel settings">
+              <h2>Release scope</h2>
+              <p class="muted">
+                Exact hostname routing supports up to eight applications, each
+                with its own upstream pool and security policy. Certificate files support validated
+                live renewal, and administration activity has a separate durable
+                journal. Linux service packaging is available for an initial
+                deployment. Administration, resource limits, counters and revision
+                rollback cover the whole deployment. Local accounts support administrator,
+                operator and viewer roles, application assignments, scoped automation tokens, passkeys and optional organization SSO.
+              </p>
+              <p class="muted">
+                Listener and certificate paths are startup settings. Your
+                certificate provider renews the PEM files. The console shows
+                reload failures and expiry warnings. Gateway errors appear in
+                security events.
+              </p>
+            </article>
+		</section><section data-page="access" hidden>
+		<article id="enrollment-required-panel" class="panel settings" hidden><h2>Administrator enrollment required</h2><p>Deployment policy requires administrator MFA. Enroll a local factor below, then sign in with TOTP or verify a passkey to open the security console. Bootstrap recovery remains available.</p></article>
+        <article id="mfa-policy-panel" class="panel settings" hidden><h2>Administrator authentication policy</h2><p class="muted">Require verified MFA for every named administrator. Password-only sessions receive enrollment access. At least one enabled administrator needs an enrolled local factor.</p><form id="mfa-policy-form"><div class="field-grid"><label><input id="require-admin-mfa" type="checkbox" /> Require administrator MFA</label><div id="mfa-policy-stepup"><label>Current password<input id="mfa-policy-password" type="password" autocomplete="current-password" maxlength="256" /></label><label>Fresh authenticator code<input id="mfa-policy-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" /></label><p class="muted">A passkey or assured SSO session verified within two minutes can authorize this change without entering these credentials again.</p></div><label>Change reason<input id="mfa-policy-reason" required maxlength="90" /></label></div><button class="primary" type="submit">Save authentication policy</button><p id="mfa-policy-error" class="error" role="alert"></p></form></article>
+        <article id="accounts-panel" class="panel settings" hidden>
+		<h2>Local accounts</h2><p class="muted">Administrators manage up to 32 local accounts. Operators change application policies. Viewers have read access. Saving an existing account revokes its sessions. The server bootstrap token retains full recovery authority and requires separate protection.</p>
+		<form id="account-form"><div class="field-grid">
+		<label>Account<select id="account-selector"><option value="">Create account</option></select></label>
+		<label>Username<input id="account-username" maxlength="64" pattern="[a-z0-9][a-z0-9_.\-]*" required autocomplete="off" /></label>
+		<label>Role<select id="account-role"><option value="administrator">Administrator</option><option value="operator">Operator</option><option value="viewer">Viewer</option></select></label>
+		<label><input id="account-disabled" type="checkbox" /> Disabled</label>
+		<label>New password<input id="account-password" type="password" autocomplete="new-password" minlength="15" maxlength="256" /><small>15–256 bytes. Leave empty to retain an existing password.</small></label>
+		<label>Change reason<input id="account-reason" required maxlength="500" /></label><label>Application access<select id="account-access-mode"><option value="all">Deployment-wide access</option><option value="assigned">Assigned applications</option></select><small>Administrators retain deployment-wide authority.</small></label><fieldset id="account-applications"><legend>Assigned applications</legend></fieldset>
+		</div><button id="save-account" class="primary" type="submit">Save account</button><button id="reset-passkeys" type="button" class="secondary" hidden>Recover selected account passkeys</button><button id="reset-mfa" type="button" class="secondary" hidden>Recover selected account MFA</button><p id="account-error" class="error" role="alert"></p></form>
+		</article>
+		<article id="password-panel" class="panel settings" hidden><h2>Change your password</h2>
+		<form id="password-form"><div class="field-grid"><label>Current password<input id="current-password" type="password" required maxlength="256" autocomplete="current-password" /></label><label>New password<input id="self-new-password" type="password" required minlength="15" maxlength="256" autocomplete="new-password" /></label><label>Authenticator code<input id="password-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" /><small>Required when MFA is enabled.</small></label></div><button class="primary" type="submit">Change password and sign out</button><p id="password-error" class="error" role="alert"></p></form></article>
+        <article id="oidc-bindings-panel" class="panel settings" hidden><h2>Organization SSO bindings</h2><p class="muted">Bind the configured issuer and an immutable subject to an existing local account. Provider email addresses and role claims do not grant access.</p><form id="oidc-binding-form"><div class="field-grid"><label>Local account<select id="oidc-binding-user" required></select></label><label>Immutable provider subject<input id="oidc-binding-subject" required maxlength="255" autocomplete="off" /></label><label><input id="oidc-binding-remove" type="checkbox" /> Remove this binding</label><label>Change reason<input id="oidc-binding-reason" required maxlength="500" /></label></div><button class="primary" type="submit">Save SSO binding</button><p id="oidc-binding-error" class="error" role="alert"></p></form><pre id="oidc-binding-list"></pre></article>
+        <article id="passkeys-panel" class="panel settings" hidden><h2>Your passkeys</h2><p class="muted">Passkeys require user verification and the configured console origin. Keep that hostname stable. Adding or revoking a key signs you out. Up to four keys share the bounded credential store.</p><button id="verify-passkey" type="button" class="secondary">Verify a passkey for this session</button><form id="passkey-enrollment-form"><div class="field-grid"><label>Key name<input id="passkey-name" required maxlength="80" /></label><label>Current password<input id="passkey-password" type="password" autocomplete="current-password" maxlength="256" /></label><label>Authenticator code<input id="passkey-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" /><small>A recent verified session can confirm enrollment. Otherwise use the current password and existing MFA.</small></label></div><button class="primary" type="submit">Enroll passkey</button><p id="passkey-error" class="error" role="alert"></p></form><div id="passkey-list"></div></article>
+        <article id="tokens-panel" class="panel settings" hidden>
+          <h2>Automation tokens</h2><p class="muted">Explicit deployment-wide scopes, an enabled local account owner and expiry are required. Account changes invalidate its tokens. Up to 64 tokens can be retained. The secret is displayed once.</p>
+          <form id="token-form"><div class="field-grid">
+            <label>Name<input id="automation-name" required maxlength="80" autocomplete="off" /></label>
+            <label>Owner<select id="automation-owner" required></select></label><label>Application access<select id="automation-access-mode"><option value="inherit">Inherit owner access</option><option value="assigned">Selected owner applications</option></select></label><fieldset id="automation-applications"><legend>Token application assignment</legend></fieldset>
+            <label>Lifetime in hours<input id="automation-hours" type="number" min="1" max="2160" value="24" required /></label>
+            <label>Change reason<input id="automation-reason" required maxlength="500" /></label>
+          </div><fieldset id="automation-scopes"><legend>Permissions across this deployment</legend></fieldset>
+          <button class="primary" type="submit">Create automation token</button><p id="automation-error" class="error" role="alert"></p></form>
+          <div id="issued-token-panel" hidden><p>Save this secret in your automation credential store.</p><pre id="issued-token"></pre><button id="clear-issued-token" type="button" class="secondary">Clear displayed secret</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Name / ID</th><th>Owner</th><th>Scopes</th><th>Expires</th><th>Action</th></tr></thead><tbody id="automation-rows"></tbody></table></div>
+        </article>
+        <article id="mfa-panel" class="panel settings" hidden>
+          <h2>Authenticator security</h2><p id="mfa-status" class="muted"></p><p class="muted">Use an authenticator app with six-digit codes. Enrollment expires after ten minutes. Enabling or disabling MFA signs you out and invalidates your automation tokens. Recovery requires the separately protected bootstrap credential.</p>
+          <form id="mfa-form"><div class="field-grid"><label>Current password<input id="mfa-password" type="password" required maxlength="256" autocomplete="current-password" /></label><label>Authenticator code<input id="mfa-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" /></label></div>
+          <button id="mfa-setup" type="button" class="secondary">Start enrollment</button><button id="mfa-enable" type="submit" class="primary" hidden>Confirm and enable MFA</button><button id="mfa-disable" type="button" class="secondary" hidden>Disable MFA and sign out</button><p id="mfa-error" class="error" role="alert"></p></form>
+          <div id="mfa-enrollment" hidden><p>Enter this setup key in your authenticator app with SHA-1, six digits and a 30-second period. Then enter your password again and a code to confirm.</p><pre id="mfa-secret"></pre><details><summary>Authenticator URI</summary><pre id="mfa-uri"></pre></details></div>
+        </article>
+          </section>
+        </main>
+        <footer>
+          OpenWAF <span>Security console / Foundation release</span
+          ><span id="last-updated">Waiting for telemetry</span>
+        </footer>
+      </div>
+    </div>
+    <dialog id="event-dialog">
+      <div class="panel-heading">
+        <h2>Event details</h2>
+        <button id="close-dialog" class="secondary">Close</button>
+      </div>
+      <pre id="event-detail"></pre>
+    </dialog>
+    <dialog id="exception-dialog">
+      <div class="panel-heading">
+        <h2 id="exception-title">Add scoped exception</h2>
+        <button id="close-exception" type="button" class="secondary">
+          Cancel
+        </button>
+      </div>
+      <form id="exception-form" class="dialog-form">
+        <div class="field-grid">
+          <label
+            >Exception ID<input
+              id="exception-id"
+              required
+              maxlength="64"
+              pattern="[A-Za-z0-9_\-]+"
+              placeholder="feedback-formatting"
+          /></label>
+          <label
+            >HTTP method<select id="exception-method">
+              <option>GET</option>
+              <option>POST</option>
+              <option>PUT</option>
+              <option>PATCH</option>
+              <option>DELETE</option>
+              <option>HEAD</option>
+              <option>OPTIONS</option>
+            </select></label
+          >
+          <label
+            >Exact decoded path<input
+              id="exception-path"
+              required
+              maxlength="512"
+              pattern="/[A-Za-z0-9\/_.~\-]*"
+              placeholder="/feedback"
+          /></label>
+          <label
+            >Field source<select id="exception-collection">
+              <option value="ARGS_GET">Query parameter</option>
+              <option value="ARGS_POST">Body field (form or JSON)</option>
+            </select></label
+          >
+          <label
+            >Field name<input
+              id="exception-parameter"
+              required
+              maxlength="128"
+              pattern="[A-Za-z0-9_.\-]+"
+              placeholder="message"
+            /><small
+              >JSON fields use their Coraza name, for example
+              json.message.</small
+            ></label
+          >
+          <label
+            >CRS detection rule IDs<input
+              id="exception-rules"
+              required
+              placeholder="942131"
+            /><small
+              >Comma separated IDs from 913000–948999; maximum 30.</small
+            ></label
+          >
+          <label
+            >Owner<input
+              id="exception-owner"
+              required
+              maxlength="100"
+              placeholder="Application team"
+          /></label>
+          <label
+            >Expiry (optional, local time)<input
+              id="exception-expiry"
+              type="datetime-local"
+          /></label>
+        </div>
+        <label
+          >Reason<textarea
+            id="exception-reason"
+            required
+            maxlength="500"
+            rows="3"
+            placeholder="Describe the legitimate input and the investigation"
+          ></textarea>
+        </label>
+        <p id="exception-error" class="form-error" role="alert"></p>
+        <div class="dialog-actions">
+          <button class="primary" type="submit">Add to draft</button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="revision-dialog">
+      <div class="panel-heading">
+        <div>
+          <h2 id="revision-title">Compare policy revision</h2>
+          <p>Earlier settings compared with your loaded active policy.</p>
+        </div>
+        <button id="close-revision" class="secondary" type="button">
+          Close
+        </button>
+      </div>
+      <pre id="revision-diff"></pre>
+      <form id="rollback-form" class="dialog-form">
+        <label
+          >Rollback reason<textarea
+            id="rollback-reason"
+            required
+            maxlength="500"
+            rows="2"
+            placeholder="Explain why the previous settings should be restored"
+          ></textarea>
+        </label>
+        <p id="rollback-error" class="form-error" role="alert"></p>
+        <div class="dialog-actions">
+          <button id="rollback-policy" class="primary" type="submit">
+            Restore as new revision
+          </button>
+        </div>
+      </form>
+    </dialog>
+    <dialog id="application-dialog">
+      <div class="panel-heading"><div><h2>Add application</h2><p>New applications start in detection mode.</p></div><button id="close-application" type="button" class="secondary">Close</button></div>
+      <form id="application-create-form" class="dialog-form">
+        <label>Application ID<input id="new-application-id" required maxlength="64" pattern="[A-Za-z0-9_\-]+" /></label>
+        <label>Name<input id="new-application-name" required maxlength="100" /></label>
+        <label>Hostnames<input id="new-application-hosts" required maxlength="4096" placeholder="second.example.com" /></label>
+        <label>Upstream URL<input id="new-application-upstream" required type="url" /></label>
+        <label>Change reason<textarea id="new-application-reason" required maxlength="500" rows="2"></textarea></label>
+        <p id="application-create-error" class="form-error" role="alert"></p>
+        <div class="dialog-actions"><button id="create-application" class="primary" type="submit">Create application</button></div>
+      </form>
+    </dialog>
+    <dialog id="application-remove-dialog">
+      <div class="panel-heading"><div><h2>Remove application</h2><p id="application-remove-description"></p></div><button id="close-remove-application" type="button" class="secondary">Close</button></div>
+      <form id="application-remove-form" class="dialog-form">
+        <label>Change reason<textarea id="remove-application-reason" required maxlength="500" rows="2"></textarea></label>
+        <p id="application-remove-error" class="form-error" role="alert"></p>
+        <div class="dialog-actions"><button id="delete-application" class="primary" type="submit">Remove application</button></div>
+      </form>
+    </dialog>
+  </body>
+</html>

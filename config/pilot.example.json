@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "pilot_id": "REPLACE-with-deployment-window-name",
+  "owner": "REPLACE-with-accountable-operator",
+  "host": "REPLACE-with-continuously-available-host",
+  "qualification_evidence": "REPLACE-with-reviewed-application-and-identity-evidence",
+  "capacity_evidence": "REPLACE-with-measured-sizing-profile-and-headroom",
+  "management_url": "http://127.0.0.1:8081",
+  "token_file": "/etc/openwaf-pilot/monitoring-token",
+  "oidc_issuer": "https://identity.example.invalid/realms/company",
+  "canaries": [
+    {
+      "name": "business-workflow",
+      "url": "https://application.example.invalid/approved-canary",
+      "status": 200,
+      "sha256": "REPLACE-with-reviewed-stable-response-body-SHA256"
+    }
+  ]
+}

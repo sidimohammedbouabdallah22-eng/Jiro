@@ -1,0 +1,21 @@
+[Unit]
+Description=OpenWAF pilot evidence sample
+After=network-online.target openwaf.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=openwaf-pilot
+Group=openwaf-pilot
+ExecStart=/usr/bin/python3 /opt/openwaf-pilot/pilot.py sample --manifest /etc/openwaf-pilot/manifest.json --database /var/lib/openwaf-pilot/evidence.db
+Environment=PYTHONDONTWRITEBYTECODE=1
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/openwaf-pilot
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=0077
+MemoryMax=128M
+TasksMax=16
+TimeoutStartSec=60

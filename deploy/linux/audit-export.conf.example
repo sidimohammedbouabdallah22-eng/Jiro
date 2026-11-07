@@ -1,0 +1,5 @@
+[Service]
+LoadCredential=audit-export-token:/etc/openwaf/audit-export-token
+# Retain any deployment-specific ExecStart arguments when applying this override.
+ExecStart=
+ExecStart=/usr/lib/openwaf/waf-server -config=/var/lib/openwaf/policy.json -admin-token-file=${CREDENTIALS_DIRECTORY}/admin-token -admin=${OPENWAF_ADMIN} -listen=${OPENWAF_LISTEN} -tls-cert=${OPENWAF_TLS_CERT} -tls-key=${OPENWAF_TLS_KEY} -tls-hostnames=${OPENWAF_TLS_HOSTNAMES} -trusted-proxies=${OPENWAF_TRUSTED_PROXIES} -audit-export-token-file=${CREDENTIALS_DIRECTORY}/audit-export-token

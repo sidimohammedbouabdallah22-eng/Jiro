@@ -1,0 +1,10 @@
+{
+  "origin": "https://console.example.com:9443",
+  "passkey_rp_id": "console.example.com",
+  "oidc": {
+    "issuer": "https://identity.example.com/realms/company",
+    "client_id": "openwaf",
+    "client_secret_file": "/etc/openwaf/oidc-client-secret",
+    "required_acr": "organization-mfa-assurance"
+  }
+}

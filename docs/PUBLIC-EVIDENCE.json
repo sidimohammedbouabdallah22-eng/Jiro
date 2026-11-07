@@ -1,0 +1,243 @@
+{
+  "as_of": "2026-11-07",
+  "evidence_origin": "Maintainer-run synthetic local labs, checked by separate local evidence-verification tools",
+  "independent_external_review_complete": false,
+  "production_ready": false,
+  "pilot_started": false,
+  "qualification_namespace": "github.com/openwaf/openwaf",
+  "publication_namespace": "github.com/sidimohammedbouabdallah22-eng/Jiro",
+  "namespace_adjusted_preview": true,
+  "historical_candidate": "32d099011bde",
+  "linux_package_sha256": "7bdfc03cf31dfbc0687d05419714d06c6155b3846c8b7bb232d9dcd75a7c5a36",
+  "linux_server_sha256": "3564efa5f9b7feddac52752c3a6641665d72734b14b8411f7d7eb27cbd8c22dc",
+  "coraza": "v3.8.2-0.20261029104012-08aa51147300",
+  "crs": "v4.30.0",
+  "downstream_patch": "openwaf-ascii-presence-v1",
+  "windows": {
+    "passed": true,
+    "crs": {
+      "Total": 5193,
+      "Passed": 5193,
+      "Failed": 0,
+      "Errors": 0,
+      "Skipped": 0,
+      "Ignored": 0
+    }
+  },
+  "linux": {
+    "passed": true,
+    "crs": {
+      "Total": 5193,
+      "Passed": 5193,
+      "Failed": 0,
+      "Errors": 0,
+      "Skipped": 0,
+      "Ignored": 0
+    }
+  },
+  "guarded_screen": {
+    "checker_result": {
+      "evidence_verified": true,
+      "requests": 4096,
+      "sessions": 80,
+      "files": 42,
+      "bytes": 30105600,
+      "records": 310,
+      "occurrences": 864,
+      "abuse_profile_qualified": false,
+      "external_source_profile_qualified": false,
+      "endurance_profile_qualified": false
+    },
+    "negative_proofs_rejected": 24,
+    "phases": [
+      {
+        "name": "nat-baseline",
+        "seconds": 60,
+        "browser_passed": true,
+        "responsiveness_passed": true,
+        "coverage_passed": true,
+        "resource_evidence_passed": true,
+        "resource_budget_passed": true,
+        "latency": {
+          "navigation_p95_ms": 1900.657,
+          "wave_p95_ms": 8461.814,
+          "file_p95_ms": 3658.968
+        }
+      },
+      {
+        "name": "nat-erp-abuse",
+        "seconds": 60,
+        "browser_passed": true,
+        "responsiveness_passed": true,
+        "coverage_passed": true,
+        "resource_evidence_passed": true,
+        "resource_budget_passed": true,
+        "latency": {
+          "navigation_p95_ms": 2295.417,
+          "wave_p95_ms": 11630.14,
+          "file_p95_ms": 6362.03
+        }
+      },
+      {
+        "name": "nat-shop-abuse",
+        "seconds": 60,
+        "browser_passed": true,
+        "responsiveness_passed": true,
+        "coverage_passed": true,
+        "resource_evidence_passed": true,
+        "resource_budget_passed": true,
+        "latency": {
+          "navigation_p95_ms": 2115.527,
+          "wave_p95_ms": 10670.395,
+          "file_p95_ms": 5272.438
+        }
+      },
+      {
+        "name": "nat-both-abuse",
+        "seconds": 60,
+        "browser_passed": true,
+        "responsiveness_passed": false,
+        "coverage_passed": false,
+        "resource_evidence_passed": false,
+        "resource_budget_passed": false,
+        "latency": {
+          "navigation_p95_ms": 3590.223,
+          "wave_p95_ms": 13900.576,
+          "file_p95_ms": 9152.481
+        }
+      },
+      {
+        "name": "nat-shared-abuse",
+        "seconds": 60,
+        "browser_passed": false,
+        "responsiveness_passed": false,
+        "coverage_passed": false,
+        "resource_evidence_passed": true,
+        "resource_budget_passed": true,
+        "latency": {
+          "navigation_p95_ms": 3730.779,
+          "wave_p95_ms": 10038.391,
+          "file_p95_ms": 3278.374
+        }
+      }
+    ],
+    "limits": {
+      "max_concurrent": 32,
+      "max_client_concurrent": 0,
+      "client_requests_per_second": 30,
+      "client_burst": 96,
+      "max_client_buffer_mib": 12,
+      "admission_wait_ms": 1000,
+      "client_body_kib_per_second": 160,
+      "client_body_burst_kib": 4096
+    },
+    "guest": {
+      "vcpus": 4,
+      "memory_mib": 4096
+    },
+    "qualified": false
+  },
+  "extended_diagnostic": {
+    "checker_result": {
+      "evidence_verified": true,
+      "requests": 14683,
+      "sessions": 272,
+      "files": 136,
+      "bytes": 97484800,
+      "records": 1188,
+      "occurrences": 3760,
+      "abuse_profile_qualified": false,
+      "external_source_profile_qualified": false,
+      "endurance_profile_qualified": false
+    },
+    "negative_proofs_rejected": 24,
+    "phases": [
+      {
+        "name": "nat-baseline",
+        "seconds": 60,
+        "browser_passed": true,
+        "responsiveness_passed": true,
+        "coverage_passed": true,
+        "resource_evidence_passed": true,
+        "resource_budget_passed": true,
+        "latency": {
+          "navigation_p95_ms": 1790.231,
+          "wave_p95_ms": 8703.155,
+          "file_p95_ms": 3465.944
+        }
+      },
+      {
+        "name": "nat-erp-abuse",
+        "seconds": 300,
+        "browser_passed": true,
+        "responsiveness_passed": false,
+        "coverage_passed": false,
+        "resource_evidence_passed": false,
+        "resource_budget_passed": false,
+        "latency": {
+          "navigation_p95_ms": 2674.824,
+          "wave_p95_ms": 15091.377,
+          "file_p95_ms": 5613.403
+        }
+      },
+      {
+        "name": "nat-shop-abuse",
+        "seconds": 300,
+        "browser_passed": true,
+        "responsiveness_passed": true,
+        "coverage_passed": true,
+        "resource_evidence_passed": false,
+        "resource_budget_passed": false,
+        "latency": {
+          "navigation_p95_ms": 2343.194,
+          "wave_p95_ms": 11948.278,
+          "file_p95_ms": 4648.759
+        }
+      },
+      {
+        "name": "nat-both-abuse",
+        "seconds": 300,
+        "browser_passed": true,
+        "responsiveness_passed": true,
+        "coverage_passed": false,
+        "resource_evidence_passed": true,
+        "resource_budget_passed": true,
+        "latency": {
+          "navigation_p95_ms": 3352.909,
+          "wave_p95_ms": 15640.244,
+          "file_p95_ms": 5772.781
+        }
+      },
+      {
+        "name": "nat-shared-abuse",
+        "seconds": 60,
+        "browser_passed": false,
+        "responsiveness_passed": false,
+        "coverage_passed": true,
+        "resource_evidence_passed": true,
+        "resource_budget_passed": true,
+        "latency": {
+          "navigation_p95_ms": 2963.826,
+          "wave_p95_ms": 12283.985,
+          "file_p95_ms": 264.091
+        }
+      }
+    ],
+    "limits": {
+      "max_concurrent": 32,
+      "max_client_concurrent": 0,
+      "client_requests_per_second": 30,
+      "client_burst": 96,
+      "max_client_buffer_mib": 12,
+      "admission_wait_ms": 1000,
+      "client_body_kib_per_second": 160,
+      "client_body_burst_kib": 3072
+    },
+    "guest": {
+      "vcpus": 4,
+      "memory_mib": 4096
+    },
+    "qualified": false
+  },
+  "raw_artifact_status": "Private lab artifacts pending separate disclosure review"
+}

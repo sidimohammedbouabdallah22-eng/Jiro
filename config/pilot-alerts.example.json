@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "deployment": "replace-with-reviewed-deployment",
+  "pilot_manifest": "/etc/openwaf-pilot/manifest.json",
+  "pilot_database": "/var/lib/openwaf-pilot/evidence.db",
+  "webhook_url": "https://alerts.example.invalid/openwaf",
+  "webhook_token_file": "/etc/openwaf-pilot/webhook-token"
+}

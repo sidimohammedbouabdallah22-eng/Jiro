@@ -1,0 +1,11 @@
+[Unit]
+Description=Sample OpenWAF pilot health and business canaries each minute
+
+[Timer]
+OnBootSec=60
+OnUnitActiveSec=60
+AccuracySec=1
+Unit=openwaf-pilot.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,54 @@
+{
+  "passed": true,
+  "namespace": "github.com/sidimohammedbouabdallah22-eng/Jiro",
+  "phases": [
+    {
+      "name": "build-server",
+      "exit_code": 0,
+      "seconds": 2.978
+    },
+    {
+      "name": "build-admin",
+      "exit_code": 0,
+      "seconds": 1.337
+    },
+    {
+      "name": "build-legacy",
+      "exit_code": 0,
+      "seconds": 1.327
+    },
+    {
+      "name": "unit-integration",
+      "exit_code": 0,
+      "seconds": 53.946
+    },
+    {
+      "name": "vet",
+      "exit_code": 0,
+      "seconds": 1.605
+    },
+    {
+      "name": "crs",
+      "exit_code": 0,
+      "seconds": 24.822
+    },
+    {
+      "name": "edge",
+      "exit_code": 0,
+      "seconds": 6.727
+    },
+    {
+      "name": "linux-amd64-cross-build",
+      "exit_code": 0,
+      "seconds": 3.536
+    }
+  ],
+  "corpus": {
+    "Total": 5193,
+    "Passed": 5193,
+    "Failed": 0,
+    "Errors": 0,
+    "Skipped": 0,
+    "Ignored": 0
+  }
+}

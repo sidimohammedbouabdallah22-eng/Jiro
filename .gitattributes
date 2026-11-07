@@ -1,0 +1,3 @@
+# Preserve exact source and test-fixture bytes across platforms, including
+# the vendored upstream provenance hashes.
+* -text

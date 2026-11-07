@@ -1,0 +1,22 @@
+[Unit]
+Description=Check OpenWAF pilot coverage and deliver queued alerts
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=openwaf-pilot
+Group=openwaf-pilot
+ExecStart=/usr/bin/python3 /opt/openwaf-pilot/pilot_alerts.py --config /etc/openwaf-pilot/alerts.json --state /var/lib/openwaf-pilot-alerts/outbox.db
+Environment=PYTHONDONTWRITEBYTECODE=1
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadOnlyPaths=/var/lib/openwaf-pilot
+ReadWritePaths=/var/lib/openwaf-pilot-alerts
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+UMask=0077
+MemoryMax=128M
+TasksMax=16
+TimeoutStartSec=60

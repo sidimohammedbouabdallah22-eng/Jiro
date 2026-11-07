@@ -1,0 +1,29 @@
+OpenWAF
+Copyright 2026 OpenWAF contributors
+
+This project integrates OWASP Coraza and the OWASP Core Rule Set through
+versioned Go modules. It is independently developed and is not affiliated
+with Fortinet or endorsed by any upstream project.
+
+Direct dependencies:
+- OpenWAF downstream Coraza ASCII character-presence guard v1, based on the exact Coraza pin below; local source and patch provenance in third_party/coraza — Apache-2.0. This is not an upstream Coraza release.
+- OWASP Coraza v3.8.2-0.20261029104012-08aa51147300 (pinned development revision) — https://github.com/corazawaf/coraza — Apache-2.0
+- Coraza recommended configuration v3.8.1 — https://github.com/corazawaf/coraza-coreruleset — Apache-2.0
+- OWASP CRS v4.30.0 (embedded bundle) — https://github.com/corazawaf/coraza-coreruleset — Apache-2.0
+- mergefs v0.1.1 — https://github.com/jcchavezs/mergefs — Apache-2.0
+- gofrs/flock v0.13.1 — https://github.com/gofrs/flock — BSD-3-Clause
+- coreos/go-oidc/v3 v3.21.0 — https://github.com/coreos/go-oidc — Apache-2.0
+- go-webauthn/webauthn v0.18.2 — https://github.com/go-webauthn/webauthn — BSD-3-Clause
+- golang.org/x/oauth2 v0.36.0 — https://pkg.go.dev/golang.org/x/oauth2 — BSD-3-Clause
+
+The CRS files embedded in the binary retain their upstream copyright and
+license headers. All dependencies retain their respective licenses.
+go.mod and go.sum identify transitive dependencies. See THIRD_PARTY_LICENSES
+for the license/notice files of modules shipped in the application binary.
+
+The local references/ and archive/ directories are development material,
+are excluded from source control, and are not required to build OpenWAF.
+
+- modernc.org/sqlite v1.61.1 — https://pkg.go.dev/modernc.org/sqlite — BSD-3-Clause (see bundled SQLite notices)
+- golang.org/x/net v0.62.0 — https://pkg.go.dev/golang.org/x/net — BSD-3-Clause
+

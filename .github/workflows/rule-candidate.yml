@@ -1,0 +1,45 @@
+name: Qualify pinned rule candidate
+on:
+  workflow_dispatch:
+    inputs:
+      engine:
+        description: Exact Coraza version
+        required: true
+        type: string
+      crs:
+        description: Exact CRS version including its test corpus
+        required: true
+        type: string
+      configuration:
+        description: Exact Coraza recommended configuration version
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.3'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/qualify-rule-update.py --engine "$ENGINE" --crs "$CRS" --configuration "$CONFIGURATION"
+        env:
+          ENGINE: ${{ inputs.engine }}
+          CRS: ${{ inputs.crs }}
+          CONFIGURATION: ${{ inputs.configuration }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rule-candidate
+          path: |
+            artifacts/rule-candidate-*/result.json
+            artifacts/rule-candidate-*/*.log
+            artifacts/rule-candidate-*/modules.json
+            artifacts/rule-candidate-*/crs-regression.json
+            artifacts/rule-candidate-*/openwaf-*.tar.gz*

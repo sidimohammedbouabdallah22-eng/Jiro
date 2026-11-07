@@ -1,0 +1,98 @@
+name: M2 native VM and sustained qualification
+on:
+  workflow_dispatch:
+    inputs:
+      soak_minutes:
+        description: Synthetic multi-application soak minutes, 1 through 240
+        required: true
+        type: number
+        default: 120
+      qualify_arm64:
+        description: Run the separate experimental native ARM64 qualification job
+        required: true
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  fresh-vm:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-22.04
+            arch: amd64
+          - runner: ubuntu-24.04
+            arch: amd64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go test ./...
+      - run: go run ./cmd/waf-package -version m2-ci -arch ${{ matrix.arch }} -out artifacts
+      - run: sudo bash scripts/qualify-fresh-vm.sh "$PWD/artifacts/openwaf-m2-ci-linux-${{ matrix.arch }}.tar.gz" --disposable-vm > artifacts/m2-fresh-vm.log 2>&1
+      - run: sudo bash scripts/qualify-linux-service.sh "$PWD/artifacts/openwaf-m2-ci-linux-${{ matrix.arch }}.tar.gz" >> artifacts/m2-fresh-vm.log 2>&1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m2-fresh-vm-${{ matrix.runner }}
+          path: artifacts/m2-fresh-vm.log
+  sustained:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, windows-latest]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 270
+    env:
+      SOAK_MINUTES: ${{ inputs.soak_minutes }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          [[ "$SOAK_MINUTES" =~ ^[0-9]+$ ]] && (( SOAK_MINUTES >= 1 && SOAK_MINUTES <= 240 ))
+          mkdir -p artifacts
+          go run ./cmd/waf-soak -duration "${SOAK_MINUTES}m" -rate 50 -applications 2 -audit-export -cycle 60s -outage 15s -restart 3m -out artifacts/m2-native-soak.json > artifacts/m2-native-soak.log 2>&1
+      - if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if ($env:SOAK_MINUTES -notmatch '^[0-9]+$' -or [int]$env:SOAK_MINUTES -lt 1 -or [int]$env:SOAK_MINUTES -gt 240) { throw 'Invalid duration' }
+          New-Item -ItemType Directory -Force artifacts | Out-Null
+          go run ./cmd/waf-soak -duration "$($env:SOAK_MINUTES)m" -rate 50 -applications 2 -audit-export -cycle 60s -outage 15s -restart 3m -out artifacts/m2-native-soak.json *> artifacts/m2-native-soak.log
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: m2-sustained-${{ matrix.runner }}
+          path: artifacts/m2-native-soak.*
+  experimental-arm64:
+    if: ${{ inputs.qualify_arm64 }}
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 270
+    env:
+      SOAK_MINUTES: ${{ inputs.soak_minutes }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go test ./...
+      - run: go run ./cmd/waf-package -version experimental-arm64-ci -arch arm64 -out artifacts
+      - run: sudo bash scripts/qualify-fresh-vm.sh "$PWD/artifacts/openwaf-experimental-arm64-ci-linux-arm64.tar.gz" --disposable-vm > artifacts/experimental-arm64.log 2>&1
+      - run: sudo bash scripts/qualify-linux-service.sh "$PWD/artifacts/openwaf-experimental-arm64-ci-linux-arm64.tar.gz" >> artifacts/experimental-arm64.log 2>&1
+      - shell: bash
+        run: |
+          [[ "$SOAK_MINUTES" =~ ^[0-9]+$ ]] && (( SOAK_MINUTES >= 1 && SOAK_MINUTES <= 240 ))
+          go run ./cmd/waf-soak -duration "${SOAK_MINUTES}m" -rate 50 -applications 2 -audit-export -cycle 60s -outage 15s -restart 3m -out artifacts/experimental-arm64-soak.json >> artifacts/experimental-arm64.log 2>&1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: experimental-arm64-evidence
+          path: artifacts/experimental-arm64*

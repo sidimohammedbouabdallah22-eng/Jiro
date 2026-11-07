@@ -1,0 +1,1 @@
+u openwaf - "OpenWAF service" /var/lib/openwaf /usr/sbin/nologin

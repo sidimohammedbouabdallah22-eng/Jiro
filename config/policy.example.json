@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "application_id": "primary",
+  "revision": 1,
+  "name": "Primary application",
+  "upstream": "http://127.0.0.1:3000",
+  "mode": "enforcing",
+  "paranoia": 1,
+  "inbound_threshold": 5,
+  "outbound_threshold": 4,
+  "request_limit": 10485760,
+  "response_limit": 1048576,
+  "inspect_response": false,
+  "exclusions": [],
+  "custom_rules": "",
+  "scoped_exceptions": []
+}

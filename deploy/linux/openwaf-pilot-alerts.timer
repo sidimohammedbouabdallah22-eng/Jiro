@@ -1,0 +1,11 @@
+[Unit]
+Description=Check OpenWAF pilot alert delivery independently each minute
+
+[Timer]
+OnBootSec=30
+OnUnitActiveSec=60
+AccuracySec=1
+Unit=openwaf-pilot-alerts.service
+
+[Install]
+WantedBy=timers.target

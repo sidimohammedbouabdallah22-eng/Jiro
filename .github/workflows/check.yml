@@ -1,0 +1,113 @@
+name: Verify
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  go:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: go build -o bin/waf-recovery-candidate.exe ./cmd/waf-server
+      - run: go build -o bin/waf-admin.exe ./cmd/waf-admin
+      - run: go build -o ../../bin/waf-schema1-fixture.exe .
+        working-directory: tools/recoverycheck
+      - run: go test ./...
+        env:
+          OPENWAF_RECOVERY_CANDIDATE: ${{ github.workspace }}/bin/waf-recovery-candidate.exe
+          OPENWAF_RECOVERY_ADMIN: ${{ github.workspace }}/bin/waf-admin.exe
+          OPENWAF_RECOVERY_LEGACY: ${{ github.workspace }}/bin/waf-schema1-fixture.exe
+      - run: go vet ./...
+      - run: go build ./cmd/waf-server
+      - if: runner.os == 'Linux'
+        run: go test -race ./...
+        env:
+          OPENWAF_RECOVERY_CANDIDATE: ${{ github.workspace }}/bin/waf-recovery-candidate.exe
+          OPENWAF_RECOVERY_ADMIN: ${{ github.workspace }}/bin/waf-admin.exe
+          OPENWAF_RECOVERY_LEGACY: ${{ github.workspace }}/bin/waf-schema1-fixture.exe
+  linux-service:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go run ./cmd/waf-package -arch amd64 -version ci -out artifacts
+      - run: sudo bash scripts/qualify-linux-service.sh "$PWD/artifacts/openwaf-ci-linux-amd64.tar.gz" > artifacts/linux-service-qualification.log 2>&1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: linux-service
+          path: |
+            artifacts/linux-service-qualification.log
+            artifacts/openwaf-ci-linux-amd64.tar.gz*
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: go build -o bin/openwaf ./cmd/waf-server
+      - run: npm ci --prefix tools/ui-check
+      - run: npx playwright install --with-deps chromium
+        working-directory: tools/ui-check
+      - run: node tools/ui-check/check.cjs
+  crs-regression:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: tools/crscheck/go.mod
+          cache-dependency-path: tools/crscheck/go.sum
+      - run: go run .
+        working-directory: tools/crscheck
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: crs-regression-${{ runner.os }}
+          path: artifacts/crs-regression.json
+  edge-comparison:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: tools/edgecheck/go.mod
+          cache-dependency-path: tools/edgecheck/go.sum
+      - run: go test -v ./...
+        working-directory: tools/edgecheck
+      - run: go vet ./...
+        working-directory: tools/edgecheck
+  mixed-load:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go run ./cmd/waf-qualify -requests 200
+      - run: go run ./cmd/waf-soak -duration 12s -cycle 6s -outage 2s -restart 4s -rate 100 -out artifacts/soak-ci.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mixed-load-${{ runner.os }}
+          path: |
+            artifacts/qualification.json
+            artifacts/soak-ci.json

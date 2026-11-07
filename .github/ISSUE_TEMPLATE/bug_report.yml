@@ -1,0 +1,31 @@
+name: Reproducible bug
+description: Report a non-sensitive functional or operational defect.
+body:
+  - type: markdown
+    attributes:
+      value: For vulnerabilities, follow SECURITY.md and use a private reporting channel.
+  - type: input
+    id: revision
+    attributes:
+      label: Source revision and environment
+      description: Include OS, architecture and Go version.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal synthetic reproducer
+      description: Include relevant policy settings with credentials and personal data removed.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and observed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and operating limits
+      description: For load issues, include hardware, traffic schedule, body sizes, concurrency, resource limits and event accounting.
