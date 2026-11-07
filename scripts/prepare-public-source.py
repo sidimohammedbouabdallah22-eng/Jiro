@@ -18,7 +18,7 @@ BLOCKED_SUFFIXES = {'.exe','.zip','.tar','.gz','.db','.sqlite','.pem','.key','.p
 OLD_MODULE = 'github.com/openwaf/openwaf'
 NEW_MODULE = 'github.com/sidimohammedbouabdallah22-eng/Jiro'
 
-README = '''# OpenWAF
+README = '''# Jiro
 
 A self-hosted Go reverse proxy integrating OWASP Coraza and the OWASP Core Rule
 Set with an embedded security administration console.
@@ -94,7 +94,7 @@ Maintained by [sidimohammedbouabdallah22-eng](https://github.com/sidimohammedbou
 Development uses AI-assisted coding. Qualification records distinguish measured
 results from outstanding review and release gates.
 
-OpenWAF is licensed under [Apache-2.0](LICENSE). Upstream components retain
+Jiro is licensed under [Apache-2.0](LICENSE). Upstream components retain
 their own licenses and notices.
 '''
 

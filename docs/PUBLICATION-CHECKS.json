@@ -41,6 +41,10 @@
       "name": "linux-amd64-cross-build",
       "exit_code": 0,
       "seconds": 3.536
+    },
+    {
+      "name": "browser-jiro-branding",
+      "exit_code": 0
     }
   ],
   "corpus": {

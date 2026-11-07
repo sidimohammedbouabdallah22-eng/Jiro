@@ -1,8 +1,8 @@
 # Publication review notes
 
-This is a prepared source preview for `sidimohammedbouabdallah22-eng/Jiro`.
+This is the published development preview for `sidimohammedbouabdallah22-eng/Jiro`.
 The maintainer confirmed Apache-2.0 on 7 November 2026. Public repository
-creation is complete. This source snapshot is prepared for publication.
+creation and initial source publication were completed on 7 November 2026.
 
 ## Provenance
 
@@ -31,7 +31,7 @@ It includes failed gates and identifies maintainer-run evidence.
 - Apache-2.0 was confirmed by the maintainer on 7 November 2026. The project
   LICENSE and upstream notices are included.
 - Review the source snapshot, scan report and module namespace.
-- Enable GitHub private vulnerability reporting and verify SECURITY.md's route.
+- GitHub private vulnerability reporting is enabled. SECURITY.md describes the reporting route.
 - Run the supplied workflows after repository creation and inspect their results.
 - Publish the project as a development preview with the documented limitations.
 - Keep personal application correspondence outside the source repository.
