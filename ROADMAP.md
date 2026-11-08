@@ -14,6 +14,14 @@ Repeat the finalized harness on a host with headroom, then repeat the selected
 Jiro package's deployment-sensitive gates before the business pilot.
 [Findings and retained evidence](docs/M4-NAT-ABUSE.md).
 
+M4 follow-up on 8 November 2026. A transient empty-outbox read failure now
+recovers export health without inventing receiver contact. The two-MiB burst
+fails the legitimate baseline and is rejected for the current workload. The
+new Jiro candidate passes its three-MiB baseline, then fails the first longer
+ERP phase on latency, sampling and one ingest acknowledgement timeout. Exact
+file/event reconciliation succeeds. Resolve that tail and repeat the complete
+endurance sequence before advancing the qualification or pilot gates.
+
 First implementation update: schema-1 application identity, scoped query/body-field exceptions with expiry, durable policy revisions, comparison/rollback UI, single-writer leases and offline policy compilation are implemented. A separate Caddy compatibility lab now exercises 48 focused cases with identical CRS files. See [the security contract](docs/SECURITY_CONTRACT.md), [edge decision](docs/adr/0001-edge-connector.md), and [history decision](docs/adr/0002-policy-history.md). This is progress on M0/M1, not completion of the production gates. The next increment adds all 5,193 CRS cases with explicit platform expectations, process admission/buffer/connection limits, and bounded durable SQLite security events. See docs/REGRESSION-AND-OPERATING-LIMITS.md for raw differences and limitations. Focused HTTP/2, streaming, WebSocket, shutdown and process-crash recovery checks now pass on Windows and Linux. A bounded mixed-load probe records CPU, memory, rejection and event-loss evidence. See docs/PROTOCOL-AND-RECOVERY.md. Acknowledged group commits, counted overload summaries, a durable export outbox/reference collector and mixed-load/outage/restart soak tooling are now implemented; see docs/EVENT-DELIVERY.md for evidence and bounds. Verified offline recovery sets, coordinated sender/receiver checkpoint checks, guarded upgrade rehearsals and prepared rollback tooling are now implemented; see docs/BACKUP-RESTORE-UPGRADES.md. Multi-hour/days-long sizing, power-loss, live deployment and exhaustive protocol qualification remain open.
 
 Health and monitoring update. Authenticated health and Prometheus endpoints now expose readiness, inspection mode, resource admission, write failures and export backlog using cached state. Collector/storage degradation stays visible independently of traffic readiness. See [monitoring](docs/MONITORING.md).

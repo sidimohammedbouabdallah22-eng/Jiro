@@ -1,5 +1,15 @@
 # Progress toward an SMB deployment
 
+8 November 2026, export recovery and longer M4 testing. A reproduced empty-outbox
+read-timeout health bug is fixed with a failing-before-fix regression. Two clean
+two-MiB-burst baselines fail, including a legitimate upload refusal, rejecting
+that workload profile. The new candidate passes a three-MiB baseline, then its
+five-minute ERP phase fails latency, native sampling and one ingest
+acknowledgement. All 4,502 requests, fifty-two exact files and 659 occurrences in
+250 identical sender/receiver records reconcile. Remaining abuse phases have
+not started. Every owned VM cleanup succeeds and restores one vCPU. M4 remains
+open. [Results and binary identities](M4-NAT-ABUSE.md).
+
 7 November 2026, resumed M4 qualification. The three-MiB body-burst endurance
 run reconciles 14,683 requests, 136 committed files and 3,760 occurrences in
 1,188 identical sender/receiver records, but fails coverage, native sampling

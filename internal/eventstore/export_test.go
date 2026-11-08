@@ -26,6 +26,27 @@ func appendTest(t *testing.T, s *Store, id string) {
 	}
 }
 
+func TestEmptyExportReadFailureRecoversWithoutCollectorAcknowledgement(t *testing.T) {
+	s := openTest(t, exportOptions(filepath.Join(t.TempDir(), "events.db"), "http://127.0.0.1:1/events"))
+	connection, err := s.db.Conn(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer connection.Close()
+	await(t, func() bool { return s.ExportStatus().Failures > 0 })
+	if s.ExportStatus().Healthy {
+		t.Fatal("outbox read failure did not affect export health")
+	}
+	if err := connection.Close(); err != nil {
+		t.Fatal(err)
+	}
+	await(t, func() bool { return s.ExportStatus().Healthy })
+	status := s.ExportStatus()
+	if status.Failures == 0 || status.LastError != "" || status.Pending != 0 || status.Attempts != 0 || status.Acked != 0 || !status.LastSuccess.IsZero() {
+		t.Fatalf("read recovery changed delivery history: %+v", status)
+	}
+}
+
 func TestAcknowledgedCollectorCommitWithFailedLocalCheckpointRetries(t *testing.T) {
 	received := make(chan struct{}, 1)
 	release := make(chan struct{})

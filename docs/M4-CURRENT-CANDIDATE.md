@@ -2,7 +2,7 @@
 
 ## Published Jiro source
 
-Public revision `1afdf26c9dbcdae03b27ffa9cc8dd70bdc8f1d27` uses the
+Public revision `18a29067cad374a192a1dcb067d5ab3c77fcf7a3` uses the
 `github.com/sidimohammedbouabdallah22-eng/Jiro` module and Jiro console branding.
 It resolves Windows short directory names before disposable recovery containment
 checks. A regression reproduces the earlier failure and verifies the fix,
@@ -11,11 +11,32 @@ including rejection of external state paths.
 All nine hosted verification jobs pass on that revision, including both platform
 suites, Linux race checks, browser workflows, service packaging, mixed load,
 and 5,193 CRS cases on each platform.
-[Hosted verification](https://github.com/sidimohammedbouabdallah22-eng/Jiro/actions/runs/42415470332).
+[Hosted verification](https://github.com/sidimohammedbouabdallah22-eng/Jiro/actions/runs/42468143920).
 
 The business endurance measurements below identify earlier packaged binaries.
 Repeat package-sensitive gates against the selected Jiro release package before
 claiming a qualified current release. M4 and the business pilot remain open.
+
+## Jiro export-read recovery candidate
+
+The 8 November follow-up fixes export health remaining failed after a transient
+database read timeout when the durable outbox is empty. A failing-before-fix
+regression verifies recovery without manufacturing a collector acknowledgement
+or receiver-contact timestamp. Local event-store/gateway suites and vet pass.
+
+The package SHA-256 is
+`d382caa1fd25f747611c292fa51b57f498c49e02c34488e79509b2944bd99c13`.
+The server SHA-256 is
+`70d3e58d0ca98c1d104c719fb2beca0c535955dae3d8ad621528db2b9490f56b`.
+Two clean-boot two-MiB-burst screens fail their baseline gates, including one
+legitimate upload refusal. That profile is rejected for this workload.
+
+The three-MiB-burst baseline passes. Its longer ERP phase completes all browser
+workflows but fails latency, coverage, native sampling and one ingest
+acknowledgement. All 4,502 requests, fifty-two files and 659 occurrences in 250
+identical receiver records reconcile. Remaining abuse phases have not started.
+Full package-sensitive qualification remains open.
+[Measurements and remaining limits](M4-NAT-ABUSE.md).
 
 ## Body-budget candidate 32d099011bde
 
@@ -82,7 +103,7 @@ higher-limit screen requires fresh abuse qualification before adoption.
 The qualification index verifies all 707 current runtime source files against
 the frozen build and records the exact proof/tool hashes. The VM ends off with
 its original one-vCPU allocation restored.
-Current qualification index (private lab artifact).
+[Current qualification index](../artifacts/rule-candidate-20031ed996b3/m4-browser-qualification.json).
 
 The earlier sustained-abuse and 27-case business functional results below
 belong to `7be7bc728f08`. Repeating deployment-sensitive evidence on the final
@@ -129,7 +150,7 @@ pilot. Details and retained failed profiles appear in
 That candidate's evidence index verifies 706 runtime source files against the
 frozen candidate and records the platform, workflow, endurance, boundary and VM
 restoration proofs. It also records the open M4 gates.
-Qualification index (private lab artifact).
+[Qualification index](../artifacts/rule-candidate-7be7bc728f08/m4-fairness-qualification.json).
 
 # Previous candidate a720777a5f60
 

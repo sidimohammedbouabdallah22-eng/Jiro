@@ -231,3 +231,68 @@ graceful shutdown, records `shutdown_forced` and fails the run. The browser
 evidence checker rejects forced-shutdown results. Unit regressions exercise
 the fallback and rejection. Continue with a passing baseline on the selected
 host before another abuse/endurance run or final-package repetition.
+
+## Export recovery and two-MiB rejection, 8 November 2026
+
+Run `m4-business-abuse-fdb1ae81` stalls during Linux boot before SSH or traffic
+setup. One owned-VM reset recovers boot, with console and host evidence retained.
+Its subsequent browser work completes in 62.15 seconds with ten exact files,
+but a transient empty-outbox database read timeout leaves export health failed.
+Successful empty reads do not clear that error in the earlier binary. The run
+stops before abuse, and cleanup succeeds. A clean-boot repeat remains required.
+
+The exporter now clears a recovered local read failure after a successful empty
+durable-outbox read and published zero pending rows. It preserves cumulative
+failures and the previous receiver-contact timestamp. The regression holds the
+sole database connection until the exporter times out, then releases it and
+requires healthy recovery with zero collector requests, acknowledgements or
+receiver-success timestamp. It fails before the fix and passes three consecutive
+times afterward. Event-store and gateway suites and vet pass locally.
+
+The new Jiro candidate archive SHA-256 is
+`d382caa1fd25f747611c292fa51b57f498c49e02c34488e79509b2944bd99c13`.
+Its Linux server SHA-256 is
+`70d3e58d0ca98c1d104c719fb2beca0c535955dae3d8ad621528db2b9490f56b`.
+These measurements identify this binary separately from `32d099011bde`.
+
+Two clean-boot two-MiB screens reject the profile before abuse. Run `aa20236e`
+completes every workflow and ten exact files, but its slowest wave takes 20.77
+seconds and its outer browser duration is 65.79 seconds. Run `0ab61703` meets
+schedule coverage but refuses one of ten legitimate uploads with HTTP 429.
+Nine committed files verify exactly and the refused file is absent. All 632
+and 629 requests respectively reconcile, with healthy storage, zero ingest
+timeouts and empty outboxes. The latter run's one security occurrence matches
+its identical sender/receiver record. Both runs restore policy, power off the
+VM and restore one vCPU. The two-MiB profile is rejected for this workload.
+Its hostile phases have not run.
+
+## Longer Jiro-candidate endurance attempt
+
+Run `m4-business-abuse-6b27c051` restores the three-MiB burst at 160 KiB/s.
+Its clean-boot baseline passes every workload and resource gate in 57.97 seconds.
+The intended sequence is a one-minute baseline and four five-minute abuse phases.
+The first five-minute ERP phase completes all twenty browser waves and forty-two
+file round trips, but browser work takes 322.44 seconds and its slowest wave
+takes 21.96 seconds. One ingest acknowledgement times out and the health-aware
+drain gate stops the sequence. Storefront, simultaneous and shared-source phases
+have not started. This is a failed endurance attempt.
+
+Independent reconciliation covers all 4,502 requests, fifty-two exact files
+totaling 37,273,600 bytes, and 659 security occurrences in 250 identical
+sender/receiver records. The outbox is empty, queue loss and failed writes are
+zero, and export recovers after five transient failures. The ingest-timeout
+counter remains one. The maximum observed writer operation takes 3.83 seconds.
+Exact delivery does not satisfy the acknowledgement-latency gate.
+
+Native sampling gaps of 4.97 and 8.07 seconds invalidate the first and last
+minute. The three valid middle minutes observe 66.06%, 63.03% and 67.29% CPU.
+Overlapping Windows samples continue without a four-second gap and show about
+51% and 61% host utilization around the native gaps. These samples alone do not
+attribute the delay to host scheduling, guest scheduling, disk or collector work.
+Two overlapping host monitors cover the intended long sequence without changing
+qualification sources. Cleanup succeeds, the host monitor observes VM exit and
+one vCPU is restored.
+
+M4 remains open. Resolve the acknowledgement and native-sampling tail on the
+selected host before repeating the complete sequence. Retain rejected profiles,
+failed evidence and exact binary identities in the qualification ledger.

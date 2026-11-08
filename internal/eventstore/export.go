@@ -291,6 +291,7 @@ func (s *Store) runExport(ctx context.Context) {
 	}
 	backoff := minimum
 	var uncertainCheckpoint time.Time
+	loadFailed := false
 	wait := func(delay time.Duration) bool {
 		timer := time.NewTimer(delay)
 		defer timer.Stop()
@@ -309,12 +310,17 @@ func (s *Store) runExport(ctx context.Context) {
 			// A verified receiver ACK plus a freshly empty durable outbox and
 			// published writer counters resolves that uncertainty without
 			// another event, replay, or invented receiver-contact timestamp.
-			if !uncertainCheckpoint.IsZero() && s.exportRows.Load() == 0 {
+			// A recovered empty-outbox read also clears its own transient
+			// failure, without claiming a receiver acknowledgement.
+			if (loadFailed || !uncertainCheckpoint.IsZero()) && s.exportRows.Load() == 0 {
 				s.exportMu.Lock()
 				s.exportError = ""
-				s.exportSuccess = uncertainCheckpoint
+				if !uncertainCheckpoint.IsZero() {
+					s.exportSuccess = uncertainCheckpoint
+				}
 				s.exportMu.Unlock()
 				uncertainCheckpoint = time.Time{}
+				loadFailed = false
 				backoff = minimum
 			}
 			if !wait(100 * time.Millisecond) {
@@ -322,6 +328,7 @@ func (s *Store) runExport(ctx context.Context) {
 			}
 			continue
 		}
+		loadFailed = err != nil
 		if err == nil {
 			var verifiedAt time.Time
 			delay, verifiedAt, err = s.sendExport(ctx, client, batch)
