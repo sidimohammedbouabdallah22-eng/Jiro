@@ -53,3 +53,49 @@ bodyless traffic, atomic capacity refusals, configuration validation and
 unknown-length rejection before body reading. Full platform, CRS and race
 results are recorded in the current candidate ledger. The request envelope,
 CRS policy and inspection behavior remain independently configured.
+
+## Optional reservation for an upload route
+
+A client budget can reserve a partition for one exact method and path. The
+administrator console exposes method, path, rate and burst fields. An empty
+path disables the reservation. The API accepts the following optional object
+inside the application's traffic controls.
+
+```json
+{
+  "client_body_kib_per_second": 192,
+  "client_body_burst_kib": 5120,
+  "client_body_reservation": {
+    "method": "POST",
+    "path": "/api/index.php/documents/upload",
+    "kib_per_second": 160,
+    "burst_kib": 4096
+  }
+}
+```
+
+The reserved route receives 160 KiB/s and 4 MiB burst. Other bodies receive the
+remaining 32 KiB/s and 1 MiB burst. Both partitions also consume the aggregate
+192 KiB/s, 5 MiB bucket atomically. A refusal spends no credit. All request-rate,
+concurrency, buffer, unknown-length envelope and CRS checks continue to apply.
+Unused partition credits remain in that partition. Bodyless traffic costs zero.
+Both partitions must fit one maximum request. Existing configurations without
+the object retain their original behavior and bounded client identity table.
+
+Matching uses the exact case-sensitive method and escaped path. Query parameters
+do not select a different partition. Configuration accepts POST, PUT or PATCH
+and a canonical unescaped path, with no wildcard, query or fragment. Aliases,
+encoded paths and trailing slashes use the general partition unless they match
+the configured literal. Operators must verify application routing conventions.
+
+This is a route allocation. Requests aimed at the reserved route share its
+credit, including malicious requests. Cookies, API-key headers and user-supplied
+forwarded addresses grant no extra credit. The application still authenticates
+and authorizes uploads. The M4 shared-source profile tests cross-route abuse,
+and same-route exhaustion remains an explicit boundary. No pilot claim follows
+from this synthetic profile.
+
+Older binaries reject the new configuration field. Upgrade or rollback checks
+must use the complete policy history and a compatible checkpoint. Clearing the
+active reservation leaves historical snapshots that still require a compatible
+reader.

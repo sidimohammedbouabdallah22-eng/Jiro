@@ -203,9 +203,14 @@ def check(path, package):
             if endurance:
                 body_rate = report.get('nat_limits',{}).get('client_body_kib_per_second',0)
                 body_burst = report.get('nat_limits',{}).get('client_body_burst_kib',0)
-                assert (body_rate,body_burst) in [(0,0),(160,2048),(160,3072),(160,4096)]
+                assert (body_rate,body_burst) in [(0,0),(160,2048),(160,3072),(160,4096),(160,5120),(192,5120)]
                 assert controls.get('client_body_kib_per_second',0) == body_rate
                 assert controls.get('client_body_burst_kib',0) == body_burst
+                reservations = report.get('body_reservations',{})
+                if reservations:
+                    assert (body_rate,body_burst) in [(160,4096),(160,5120),(192,5120)]
+                    assert reservations == dict(dolibarr=dict(method='POST',path='/api/index.php/documents/upload',kib_per_second=body_rate-32,burst_kib=body_burst-1024))
+                assert controls.get('client_body_reservation') == reservations.get(app['application_id'])
         if endurance:
             assert phase['shared_nat'] and not phase['sequential'] and phase['waves']*15 == phase['seconds']
             assert 60 <= phase['seconds'] <= 300

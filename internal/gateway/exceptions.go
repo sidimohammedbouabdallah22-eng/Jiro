@@ -122,6 +122,10 @@ func (c Config) clone() Config {
 			}
 			if app.TrafficControls != nil {
 				controls := *app.TrafficControls
+				if controls.ClientBodyReservation != nil {
+					reservation := *controls.ClientBodyReservation
+					controls.ClientBodyReservation = &reservation
+				}
 				c.Applications[i].TrafficControls = &controls
 			}
 		}

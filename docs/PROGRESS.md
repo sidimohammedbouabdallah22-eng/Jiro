@@ -1,5 +1,20 @@
 # Progress toward an SMB deployment
 
+8 November 2026, upload-route reservation follow-up. The selected Jiro package
+passes the full twenty-one-minute WSL2 sequence, including all four five-minute
+abuse phases and shared-source uploads. Independent checks verify 19,503 requests,
+336 browser sessions, 178 exact files and 6,029 security occurrences in 1,805
+identical sender/receiver records. All attempted uploads commit. Ingest timeouts,
+queue loss, write failures and export failures are zero, with an empty outbox.
+Maximum native gap is 1.020 seconds and maximum one-minute allocation CPU
+is 64.30%, below the unchanged 80% gate. The profile uses 192 KiB/s and
+5 MiB aggregate burst per application/client. ERP reserves 160 KiB/s and 4 MiB
+for its exact upload route, leaving 32 KiB/s and 1 MiB for other bodies. These
+are workload-qualified operator choices. Same-route abuse still competes for
+reserved credit. Existing policies retain their behavior by default. M4 remains
+open for deployment-specific qualification, independent review and the business
+pilot. [Measurements and limits](M4-NAT-ABUSE.md).
+
 8 November 2026, full local WSL2 endurance completes. Baseline and all three
 five-minute external-abuse profiles pass every workload/resource gate. The
 five-minute shared-source profile completes but refuses legitimate uploads.

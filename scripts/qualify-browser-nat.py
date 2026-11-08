@@ -35,7 +35,10 @@ def phase(lab, proxies, name, controls, shared, waves, sequential=False,
           targets=(), seconds=0, attack_lane='attacker'):
     config = lab.admin('config')
     for app in config['applications']:
-        app['traffic_controls'] = controls
+        app['traffic_controls'] = dict(controls)
+        reservation = lab.report.get('body_reservations',{}).get(app['application_id'])
+        if reservation:
+            app['traffic_controls']['client_body_reservation'] = reservation
     lab.admin('config/apply', dict(config=config,reason='Owned M4 browser and shared-NAT qualification'))
     applied = lab.admin('config')
     for proxy in proxies:
@@ -184,15 +187,17 @@ def main():
     parser.add_argument('--gateway-cpu-quota',type=int,choices=[0,200],default=0)
     parser.add_argument('--gateway-gomaxprocs',type=int,choices=[0,2],default=0)
     parser.add_argument('--nat-client-buffer-mib',type=int,choices=[12,24],default=12)
-    parser.add_argument('--nat-body-rate-kib',type=int,choices=[0,160],default=0)
-    parser.add_argument('--nat-body-burst-kib',type=int,choices=[0,2048,3072,4096],default=0)
+    parser.add_argument('--nat-body-rate-kib',type=int,choices=[0,160,192],default=0)
+    parser.add_argument('--nat-body-burst-kib',type=int,choices=[0,2048,3072,4096,5120],default=0)
+    parser.add_argument('--reserve-upload-body',action='store_true')
     parser.add_argument('--shared-abuse-seconds',type=int,default=0)
     args = parser.parse_args()
     assert args.disposable_vm or args.wsl_fixture, 'select the disposable VM or an owned WSL2 fixture'
     assert 1 <= args.waves <= 20
     assert args.abuse_seconds == 0 or (60 <= args.abuse_seconds <= 300 and args.abuse_seconds%60 == 0)
     assert args.abuse_seconds or (args.gateway_cpu_quota == 0 and args.nat_client_buffer_mib == 12)
-    assert (args.nat_body_rate_kib == 0) == (args.nat_body_burst_kib == 0)
+    assert not args.reserve_upload_body or (args.nat_body_rate_kib,args.nat_body_burst_kib) in [(160,4096),(160,5120),(192,5120)]
+    assert (args.nat_body_rate_kib,args.nat_body_burst_kib) in [(0,0),(160,2048),(160,3072),(160,4096),(160,5120),(192,5120)], 'unsupported body-rate qualification profile'
     assert args.abuse_seconds or args.nat_body_rate_kib == 0
     assert args.shared_abuse_seconds == 0 or (args.abuse_seconds and 60 <= args.shared_abuse_seconds <= 300 and args.shared_abuse_seconds%60 == 0)
     sources = ['qualify-browser-nat.py','browser_proxy.py','joint_fair_lab.py','joint_business_lab.py',
@@ -275,6 +280,8 @@ def main():
         candidate = dict(max_concurrent=32,max_client_concurrent=0,client_requests_per_second=30,
                          client_burst=96,max_client_buffer_mib=args.nat_client_buffer_mib,admission_wait_ms=1000)
         lab.report['nat_limits'] = candidate
+        if args.reserve_upload_body:
+            lab.report['body_reservations'] = dict(dolibarr=dict(method='POST',path='/api/index.php/documents/upload',kib_per_second=args.nat_body_rate_kib-32,burst_kib=args.nat_body_burst_kib-1024))
         if args.nat_body_rate_kib:
             candidate.update(client_body_kib_per_second=args.nat_body_rate_kib,
                              client_body_burst_kib=args.nat_body_burst_kib)

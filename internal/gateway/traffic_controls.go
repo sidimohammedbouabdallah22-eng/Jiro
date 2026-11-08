@@ -23,20 +23,25 @@ func hasTrafficControls(c Config) bool {
 }
 
 type TrafficControls struct {
-	RequestsPerSecond       int `json:"requests_per_second"`
-	Burst                   int `json:"burst"`
-	ClientRequestsPerSecond int `json:"client_requests_per_second"`
-	ClientBurst             int `json:"client_burst"`
-	ClientBodyKiBPerSecond  int `json:"client_body_kib_per_second,omitempty"`
-	ClientBodyBurstKiB      int `json:"client_body_burst_kib,omitempty"`
-	MaxConcurrent           int `json:"max_concurrent"`
-	MaxClientConcurrent     int `json:"max_client_concurrent"`
-	MaxClientBufferMiB      int `json:"max_client_buffer_mib,omitempty"`
-	AdmissionWaitMS         int `json:"admission_wait_ms,omitempty"`
+	RequestsPerSecond       int              `json:"requests_per_second"`
+	Burst                   int              `json:"burst"`
+	ClientRequestsPerSecond int              `json:"client_requests_per_second"`
+	ClientBurst             int              `json:"client_burst"`
+	ClientBodyKiBPerSecond  int              `json:"client_body_kib_per_second,omitempty"`
+	ClientBodyBurstKiB      int              `json:"client_body_burst_kib,omitempty"`
+	ClientBodyReservation   *BodyReservation `json:"client_body_reservation,omitempty"`
+	MaxConcurrent           int              `json:"max_concurrent"`
+	MaxClientConcurrent     int              `json:"max_client_concurrent"`
+	MaxClientBufferMiB      int              `json:"max_client_buffer_mib,omitempty"`
+	AdmissionWaitMS         int              `json:"admission_wait_ms,omitempty"`
 	bodyKiB                 int
+	reservedBody            bool
 }
 
 func (c TrafficControls) validate() error {
+	if err := c.validateBodyReservation(); err != nil {
+		return err
+	}
 	if c.ClientBodyKiBPerSecond < 0 || c.ClientBodyKiBPerSecond > 1048576 || c.ClientBodyBurstKiB < 0 || c.ClientBodyBurstKiB > 8388608 || (c.ClientBodyKiBPerSecond == 0) != (c.ClientBodyBurstKiB == 0) || (c.ClientBodyKiBPerSecond > 0 && int64(c.ClientBodyBurstKiB) > int64(c.ClientBodyKiBPerSecond)*600) {
 		return errors.New("client body rate and burst must both be zero or bounded positive KiB values, with at most ten minutes of burst capacity")
 	}
@@ -58,6 +63,11 @@ func (c TrafficControls) validate() error {
 }
 
 func (c TrafficControls) validateBuffer(policy Config) error {
+	if r := c.ClientBodyReservation; r != nil {
+		if int64(r.BurstKiB)*1024 < policy.RequestLimit || int64(c.ClientBodyBurstKiB-r.BurstKiB)*1024 < policy.RequestLimit {
+			return errors.New("reserved and general body bursts must each fit one maximum request")
+		}
+	}
 	if c.ClientBodyKiBPerSecond > 0 && int64(c.ClientBodyBurstKiB)*1024 < policy.RequestLimit {
 		return errors.New("client body burst must fit one maximum request")
 	}
@@ -93,13 +103,15 @@ func (b *tokenBucket) retryCost(cost float64) int {
 }
 
 type clientBudget struct {
-	key        string
-	active     int
-	reserved   int64
-	seen       time.Time
-	bucket     tokenBucket
-	bodyBucket tokenBucket
-	element    *list.Element
+	key                string
+	active             int
+	reserved           int64
+	seen               time.Time
+	bucket             tokenBucket
+	bodyBucket         tokenBucket
+	reservedBodyBucket tokenBucket
+	generalBodyBucket  tokenBucket
+	element            *list.Element
 }
 type applicationBudget struct {
 	retired  bool
@@ -285,12 +297,17 @@ func (b *resourceBudget) tryAdmitLocked(id, ip string, weight int64, c TrafficCo
 		}
 		client.bucket.refill(now, c.ClientRequestsPerSecond, c.ClientBurst)
 		client.bodyBucket.refill(now, c.ClientBodyKiBPerSecond, c.ClientBodyBurstKiB)
+		client.refillBodyReservation(now, c)
 	}
 	a.bucket.refill(now, c.RequestsPerSecond, c.Burst)
 	retry := a.bucket.retry()
 	if client != nil {
 		retry = max(retry, client.bucket.retry())
-		if bodyRetry := client.bodyBucket.retryCost(float64(c.bodyKiB)); bodyRetry > 0 {
+		bodyRetry := client.bodyBucket.retryCost(float64(c.bodyKiB))
+		if lane := client.bodyLane(c); lane != nil {
+			bodyRetry = max(bodyRetry, lane.retryCost(float64(c.bodyKiB)))
+		}
+		if bodyRetry > 0 {
 			return admissionResult{status: 429, reason: "Client request body rate exceeded", retry: max(retry, bodyRetry)}
 		}
 	}
@@ -306,6 +323,9 @@ func (b *resourceBudget) tryAdmitLocked(id, ip string, weight int64, c TrafficCo
 		}
 		if c.ClientBodyKiBPerSecond > 0 {
 			client.bodyBucket.tokens -= float64(c.bodyKiB)
+			if lane := client.bodyLane(c); lane != nil {
+				lane.tokens -= float64(c.bodyKiB)
+			}
 		}
 		client.active++
 		client.reserved += weight
@@ -366,6 +386,7 @@ func (b *resourceBudget) configureApplications(c Config) {
 		for _, client := range state.clients {
 			client.bucket.refill(now, controls.ClientRequestsPerSecond, controls.ClientBurst)
 			client.bodyBucket.refill(now, controls.ClientBodyKiBPerSecond, controls.ClientBodyBurstKiB)
+			client.refillBodyReservation(now, controls)
 		}
 	}
 }

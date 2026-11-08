@@ -314,11 +314,15 @@
 		<label>Client burst<input name="traffic_client_burst" type="number" min="0" max="100000" value="0" required /></label>
 		<label>Client request-body rate (KiB/s, 0 disables)<input name="traffic_client_body_kib_per_second" type="number" min="0" max="1048576" value="0" required /></label>
 		<label>Client request-body burst (KiB)<input name="traffic_client_body_burst_kib" type="number" min="0" max="8388608" value="0" required /></label>
+		<label>Reserved body route method<select name="body_reservation_method"><option>POST</option><option>PUT</option><option>PATCH</option></select></label>
+		<label>Reserved body route path (empty disables)<input name="body_reservation_path" maxlength="512" placeholder="/api/documents/upload" /></label>
+		<label>Reserved body rate (KiB/s)<input name="body_reservation_rate" type="number" min="0" max="1048575" value="0" required /></label>
+		<label>Reserved body burst (KiB)<input name="body_reservation_burst" type="number" min="0" max="8388607" value="0" required /></label>
 		<label>Application concurrent requests<input name="traffic_max_concurrent" type="number" min="0" max="1024" value="0" required /></label>
 		<label>Client concurrent requests<input name="traffic_max_client_concurrent" type="number" min="0" max="1024" value="0" required /></label>
 		<label>Client buffer budget (MiB; 0 disables)<input name="traffic_max_client_buffer_mib" type="number" min="0" max="8192" value="0" required /></label>
 		<label>Admission wait (milliseconds)<input name="traffic_admission_wait_ms" type="number" min="0" max="1000" value="0" required /></label>
-		</div><p class="muted">Rate and burst must both be positive or both zero. Client tables hold at most 1,024 identities per application. Rate rejection returns 429. Admission rejection returns 503. Both include Retry-After.</p>
+		</div><p class="muted">A route reservation partitions the total client body budget. Both partitions must fit a maximum request. The exact method and path select the reserved partition, with query parameters ignored. Full inspection applies. Abuse on that same route competes for its reservation. Rate and burst must both be positive or both zero. Client tables hold at most 1,024 identities per application. Rate rejection returns 429. Admission rejection returns 503. Both include Retry-After.</p>
 		</article>
               <article class="panel settings">
                 <div class="panel-heading">

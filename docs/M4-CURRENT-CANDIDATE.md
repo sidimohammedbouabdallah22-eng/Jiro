@@ -1,6 +1,36 @@
 # Current source and qualification ledger
 
-## Published Jiro runtime baseline
+## Upload-route reservation candidate
+
+The selected package SHA-256 is
+`f7efe1e953fac810f932bb7f59fe373b0fb2b0577b328ecca40b33bd3c097063`.
+The Linux server SHA-256 is
+`75ee8698e1ef1b5e5bf9e039943d6d2e80e3076354cee343d5dc67a8c38ad3d8`.
+All 505 runtime source files match the reviewed public source byte-for-byte.
+Full Windows and native Linux tests/vet, all 5,193 native Linux CRS cases,
+four reservation regressions and real-console save/reload/disable checks pass.
+
+Short run `da17b38e` passes all five phases, with 4,352 requests, fifty exact
+files and 1,128 occurrences in 338 identical receiver records. Full run
+`37d22b7a` passes baseline, ERP, storefront, simultaneous and shared-source
+gates. Verification covers 19,503 requests, 336 sessions, 178 files totaling
+127,590,400 bytes, and 6,029 occurrences in 1,805 identical receiver records.
+The native probe also verifies 239 previously committed files and forty-nine
+previously refused files remain absent. Delivery failures, write failures, ingest timeouts and queue loss remain zero.
+Maximum sampling gap is 1.020 seconds and one-minute CPU 64.30%.
+
+The optional exact-route reservation preserves full CRS inspection and all
+process/application/client admission limits. The qualified profile raises the
+old aggregate client body rate from 160 to 192 KiB/s and burst from 3 to 5 MiB.
+ERP reserves 160 KiB/s and 4 MiB for POST /api/index.php/documents/upload.
+Other ERP bodies receive 32 KiB/s and 1 MiB. Storefront uses its aggregate
+192 KiB/s and 5 MiB. Both applications retain their one-MiB request envelope,
+24-MiB client buffer budget, four-CPU/four-GiB allocation and original pass gates.
+Same-route abuse shares the reservation. M4 still requires deployment-specific
+qualification, independent review and the actual business pilot.
+[Results, rejected profiles and configuration](M4-NAT-ABUSE.md).
+
+## Previous published Jiro runtime baseline
 
 Revision `49303daae33019bab2f4260234d94b3cda8e38e6` uses the
 `github.com/sidimohammedbouabdallah22-eng/Jiro` module and Jiro console branding.

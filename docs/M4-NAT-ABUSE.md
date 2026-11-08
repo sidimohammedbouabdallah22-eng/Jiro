@@ -393,3 +393,69 @@ business-fixture snapshot. Resource and cleanup checks reject an unowned
 distribution, overlapping runs, unbounded allocation and a forged VM-profile
 claim. A cleanup regression also prevents a UTF-16 byte-order mark from hiding
 a still-running distribution. Failed shutdowns retain their failed state on disk.
+
+## Upload-route reservation qualification
+
+The earlier shared-source failure comes from the per-IP/application body bucket.
+An optional exact-method/path reservation now partitions that bucket, with both
+partitions also charging its aggregate ceiling under the admission lock. Client identity
+follows the configured proxy trust profile and CRS inspection applies to both
+partitions. Unknown-length
+bodies still reserve the maximum envelope before reading. The console supports
+manual editing, save/reload and empty-path disable. [Semantics](CLIENT-BODY-RATE.md).
+
+Two rejected profiles establish the required credit. Run `c6c2adac`, with a
+4 MiB total burst and a 128 KiB/s, 3 MiB reservation, refuses one baseline upload.
+Nine committed files and the absent refused file verify, with one identical
+sender/receiver record and no lost accounting. Run `469aefdc` increases total
+burst to 5 MiB and reservation to 4 MiB. Its baseline passes, but 128 KiB/s drains
+across repeated phase-start uploads. It reconciles 4,386 requests, forty-four
+files and 1,170 occurrences in 348 identical receiver records. Thirty-four false
+proofs are rejected. These failures retain their original outcomes.
+
+The selected profile uses 192 KiB/s aggregate rate and 5 MiB burst for each
+application/client. ERP reserves 160 KiB/s and 4 MiB for POST
+/api/index.php/documents/upload, leaving 32 KiB/s and 1 MiB for other bodies.
+The aggregate rate increases 20% from the earlier 160 KiB/s profile. Request
+size, CRS policy, exclusions, four-CPU/four-GiB allocation, client buffer budget,
+browser workload and all CPU/latency/native/delivery gates remain fixed.
+Each phase's initial upload pair is included in its demand calculation.
+
+Short run `da17b38e` passes all five phases. It verifies 4,352 requests, eighty
+sessions, fifty exact files and 1,128 occurrences in 338 identical receiver
+records. Thirty-four false claims are rejected. The subsequent full run
+`37d22b7a` completes a one-minute baseline and four five-minute abuse phases.
+All five phases pass every workload, coverage, native-resource and integrity
+gate, including the previously failing shared-source phase.
+
+Independent verification covers 19,503 requests, 336 sessions, 19,042 cache hits,
+178 exact uploaded files totaling 127,590,400 bytes, and 6,029 occurrences in
+1,805 identical sender/receiver records. Every attempted upload commits. The
+native probe additionally verifies 239 prior files and forty-nine prior refused
+files remain absent. Ingest timeouts, queue loss, failed writes and export
+failures are zero. The outbox is empty. Maximum sampling gap is 1.019835
+seconds, maximum phase CPU 51.30%, maximum one-minute CPU 64.30%, peak
+allocation memory 1,682,612,224 bytes and maximum writer duration 360.601 ms.
+
+| Phase | Navigation p95 ms | File p95 ms | All gates |
+| --- | ---: | ---: | --- |
+| nat-baseline | 1218.101 | 3324.536 | Pass |
+| nat-erp-abuse | 1056.668 | 3431.682 | Pass |
+| nat-shop-abuse | 1113.893 | 4179.689 | Pass |
+| nat-both-abuse | 1117.262 | 4055.419 | Pass |
+| nat-shared-abuse | 1103.145 | 4869.915 | Pass |
+
+Thirty-four fabricated qualification claims are rejected for each accepted run.
+
+The selected package and server identities are recorded in the current candidate
+ledger. Frozen harness source, native samples, request hashes, exact-file probes
+and both delivery databases are retained locally. The source VM stays off with
+its original settings and the dedicated WSL2 lab stops cleanly. Only its owned
+distribution is terminated. WSL2 remains a four-CPU/four-GiB service-slice
+qualification, with twelve host CPUs reported separately.
+
+The reservation isolates cross-route consumption. An attacker targeting that
+same route shares its credit and can cause legitimate refusals. Authentication
+and authorization remain application responsibilities. The allocation defaults
+to disabled. Selected-host/TLS/identity qualification, independent review and
+the business pilot remain open. M4 remains open, with pilot preparation awaiting deployment qualification and review.

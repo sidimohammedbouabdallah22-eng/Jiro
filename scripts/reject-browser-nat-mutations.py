@@ -58,6 +58,9 @@ def main():
             'resource-evidence':lambda r:r['phases'][1].__setitem__('resource_evidence_passed',not r['phases'][1]['resource_evidence_passed']),
             'external-qualification':lambda r:r.__setitem__('external_source_profile_qualified',not r['external_source_profile_qualified']),
         })
+        if original.get('body_reservations'):
+            mutations['body-reservation'] = lambda r:r['phases'][1]['policy']['applications'][0]['traffic_controls'].__setitem__('client_body_reservation',None)
+            mutations['body-reservation-profile'] = lambda r:r['body_reservations']['dolibarr'].__setitem__('kib_per_second',0)
         if original.get('nat_limits',{}).get('client_body_kib_per_second'):
             mutations['body-byte-rate'] = lambda r:r['phases'][1]['policy']['applications'][0]['traffic_controls'].__setitem__('client_body_kib_per_second',0)
         if original.get('gateway_cpu_control'):

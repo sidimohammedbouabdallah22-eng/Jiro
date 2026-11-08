@@ -65,6 +65,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
         working-directory: tools/ui-check
       - run: node tools/ui-check/check.cjs
+      - run: node tools/ui-check/body-budget.cjs bin/openwaf artifacts/body-reservation-console
   crs-regression:
     strategy:
       matrix:

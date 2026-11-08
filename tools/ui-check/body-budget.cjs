@@ -47,26 +47,38 @@ async function port() {
       await new Promise(resolve => setTimeout(resolve,250));
     }
     assert.ok(ready,'owned console did not start');
-    browser = await chromium.launch({executablePath:'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',headless:true});
+    const executablePath = process.env.CHROME_PATH ||
+      (process.platform === 'win32' ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe' : undefined);
+    browser = await chromium.launch({executablePath,headless:true});
     const page = await browser.newPage({viewport:{width:1440,height:1050}});
     await page.goto(origin);
     await page.locator('#token').fill(token);
     await page.getByRole('button',{name:'Open security console'}).click();
     await page.locator('#shell').waitFor({state:'visible'});
     await page.locator('[data-view="policy"]').click();
-    for (const [rate,burst] of [[128,4096],[0,0]]) {
+    for (const [rate,burst] of [[160,4096],[0,0]]) {
       await page.locator('[name="traffic_client_body_kib_per_second"]').fill(String(rate));
       await page.locator('[name="traffic_client_body_burst_kib"]').fill(String(burst));
+      await page.locator('[name="body_reservation_path"]').fill(rate ? '/upload' : '');
+      if (rate) {
+        await page.locator('[name="body_reservation_rate"]').fill('128');
+        await page.locator('[name="body_reservation_burst"]').fill('3072');
+      }
       await page.locator('#change-reason').fill('Owned browser body-budget regression');
       await page.getByRole('button',{name:'Save & apply',exact:true}).click();
       await page.getByRole('status').filter({hasText:'Policy saved and applied'}).waitFor();
       const stored = JSON.parse(await fs.readFile(config));
       assert.equal(stored.applications[0].traffic_controls.client_body_kib_per_second || 0,rate);
       assert.equal(stored.applications[0].traffic_controls.client_body_burst_kib || 0,burst);
+      const reservation = stored.applications[0].traffic_controls.client_body_reservation;
+      assert.deepEqual(reservation,rate ? {method:'POST',path:'/upload',kib_per_second:128,burst_kib:3072} : undefined);
       await page.reload();
       await page.locator('[data-view="policy"]').click();
       assert.equal(await page.locator('[name="traffic_client_body_kib_per_second"]').inputValue(),String(rate));
       assert.equal(await page.locator('[name="traffic_client_body_burst_kib"]').inputValue(),String(burst));
+      assert.equal(await page.locator('[name="body_reservation_path"]').inputValue(),rate ? '/upload' : '');
+      assert.equal(await page.locator('[name="body_reservation_rate"]').inputValue(),rate ? '128' : '0');
+      assert.equal(await page.locator('[name="body_reservation_burst"]').inputValue(),rate ? '3072' : '0');
       if (rate) await page.screenshot({path:path.join(directory,'body-budget.png'),fullPage:true});
     }
     report.passed = true;

@@ -428,6 +428,7 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Charge declared body bytes before buffering or inspecting. Unknown
 		// lengths reserve the full envelope so chunking cannot bypass the rate.
 		traffic.bodyKiB = int((requestBodySize(r, rt.config) + 1023) / 1024)
+		traffic.reservedBody = traffic.ClientBodyReservation != nil && traffic.ClientBodyReservation.Method == r.Method && traffic.ClientBodyReservation.Path == r.URL.EscapedPath()
 		if traffic.AdmissionWaitMS > 0 {
 			// Never hold lifecycle across a wait: shutdown and policy activation
 			// must remain able to wake/cancel waiters and close old runtimes.

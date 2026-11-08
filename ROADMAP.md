@@ -36,6 +36,19 @@ Shared-source upload contention remains failed. Retain the original VirtualBox
 delay as unresolved in its own profile. Close the remaining shared-source,
 deployment, independent-review and pilot gates before declaring M4 complete.
 
+A subsequent upload-route reservation candidate passes the complete local WSL2
+sequence, including the five-minute shared-source phase. Independent checks
+verify 19,503 requests, all 178 uploads and 6,029 security occurrences, with zero
+ingest timeouts, queue loss, write failures or export failures. Maximum native
+gap is 1.020 seconds and one-minute CPU 64.30% under the original
+80% gate. The workload-specific profile uses 192 KiB/s and 5 MiB aggregate
+client body credit, with 160 KiB/s and 4 MiB reserved for the exact ERP upload
+route. Same-route abuse still shares that allocation. This closes the retained
+cross-route shared-NAT workload failure for the measured service-slice profile.
+M4 remains open for selected-deployment repetition, independent review and the
+reviewed thirty-day business pilot. The original VirtualBox delay remains
+unresolved in its own profile. [Current candidate](docs/M4-CURRENT-CANDIDATE.md).
+
 First implementation update: schema-1 application identity, scoped query/body-field exceptions with expiry, durable policy revisions, comparison/rollback UI, single-writer leases and offline policy compilation are implemented. A separate Caddy compatibility lab now exercises 48 focused cases with identical CRS files. See [the security contract](docs/SECURITY_CONTRACT.md), [edge decision](docs/adr/0001-edge-connector.md), and [history decision](docs/adr/0002-policy-history.md). This is progress on M0/M1, not completion of the production gates. The next increment adds all 5,193 CRS cases with explicit platform expectations, process admission/buffer/connection limits, and bounded durable SQLite security events. See docs/REGRESSION-AND-OPERATING-LIMITS.md for raw differences and limitations. Focused HTTP/2, streaming, WebSocket, shutdown and process-crash recovery checks now pass on Windows and Linux. A bounded mixed-load probe records CPU, memory, rejection and event-loss evidence. See docs/PROTOCOL-AND-RECOVERY.md. Acknowledged group commits, counted overload summaries, a durable export outbox/reference collector and mixed-load/outage/restart soak tooling are now implemented; see docs/EVENT-DELIVERY.md for evidence and bounds. Verified offline recovery sets, coordinated sender/receiver checkpoint checks, guarded upgrade rehearsals and prepared rollback tooling are now implemented; see docs/BACKUP-RESTORE-UPGRADES.md. Multi-hour/days-long sizing, power-loss, live deployment and exhaustive protocol qualification remain open.
 
 Health and monitoring update. Authenticated health and Prometheus endpoints now expose readiness, inspection mode, resource admission, write failures and export backlog using cached state. Collector/storage degradation stays visible independently of traffic readiness. See [monitoring](docs/MONITORING.md).

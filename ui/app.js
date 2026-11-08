@@ -253,6 +253,12 @@ function fillForm() {
   for (const key of trafficKeys)
     $("#config-form").elements.namedItem("traffic_" + key).value =
       application.traffic_controls?.[key] || 0;
+  const reservation = application.traffic_controls?.client_body_reservation;
+  const fields = $("#config-form").elements;
+  fields.body_reservation_method.value = reservation?.method || "POST";
+  fields.body_reservation_path.value = reservation?.path || "";
+  fields.body_reservation_rate.value = reservation?.kib_per_second || 0;
+  fields.body_reservation_burst.value = reservation?.burst_kib || 0;
   $("#application-selector").replaceChildren(
     ...apps.map((app) => {
       const option = document.createElement("option");
@@ -343,6 +349,16 @@ function readForm() {
       Number(form.elements.namedItem("traffic_" + key).value),
     ]),
   );
+  const reservationPath = form.elements.body_reservation_path.value.trim();
+  const reservationRate = Number(form.elements.body_reservation_rate.value);
+  const reservationBurst = Number(form.elements.body_reservation_burst.value);
+  if (reservationPath)
+    traffic.client_body_reservation = {
+      method: form.elements.body_reservation_method.value,
+      path: reservationPath,
+      kib_per_second: reservationRate,
+      burst_kib: reservationBurst,
+    };
   if (Object.values(traffic).some((value) => value !== 0))
     c.traffic_controls = traffic;
   else delete c.traffic_controls;
