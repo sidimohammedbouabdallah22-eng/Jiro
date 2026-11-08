@@ -32,6 +32,19 @@ def main():
         'business-state':lambda r:r['store_after']['orders'].__setitem__('sha256','0'*64),
         'cpu-restoration':lambda r:r.__setitem__('original_cpu_restored',False),
     }
+    if 'gomaxprocs' in original.get('gateway_cpu_control',{}):
+        mutations['gateway-parallelism'] = lambda r:r['gateway_cpu_control'].__setitem__(
+            'gomaxprocs',2 if r['gateway_cpu_control']['gomaxprocs']==0 else 0)
+    if original.get('lab_environment') == 'wsl2':
+        mutations.pop('cpu-restoration')
+        def spoof_virtualbox(report):
+            report['lab_environment']='virtualbox'
+            report['vm_powered_off']=True
+            report['original_cpu_restored']=True
+            report['guest_logical_cpus']=4
+        mutations['wsl-virtualbox-claim'] = spoof_virtualbox
+        mutations['wsl-allocation'] = lambda r:r['allocation_profile'].__setitem__('allocated_cpus',12)
+        mutations['wsl-cleanup'] = lambda r:r.__setitem__('lab_stopped',False)
     if original.get('abuse_endurance'):
         mutations.update({
             'abuse-workers':lambda r:r['phases'][1].__setitem__('workers_per_target',0),

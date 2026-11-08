@@ -35,9 +35,9 @@ class FairLab(Lab):
         forwarding=[]
         for lane in self.lanes.values():
             port=lane['port'];forwarding+=['-L',f'127.0.0.1:{port}:127.0.0.1:{port}']
-        self.lane_tunnel=subprocess.Popen([str(x) for x in [*self.ssh[:-1],'-N','-o','ExitOnForwardFailure=yes',
-                                           *forwarding,self.ssh[-1]]],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
-        time.sleep(1);assert self.lane_tunnel.poll() is None
+        self.lane_tunnel=self.create_tunnel(forwarding)
+        time.sleep(1)
+        assert self.lane_tunnel is None or self.lane_tunnel.poll() is None
         self.report['lanes']=self.lanes
         self.report['measurement_note']='source-relay service cgroups include all children in the legacy containers map'
         if self.upstream_trace:

@@ -15,7 +15,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('directory',type=Path)
     parser.add_argument('--pid',type=int,required=True)
+    parser.add_argument('--samples',type=int,default=3600)
     args = parser.parse_args()
+    assert 1 <= args.samples <= 43200
     directory = args.directory.resolve(strict=True)
     assert directory.parent == Path(__file__).resolve().parents[1]/'artifacts'
     assert directory.name.startswith('m4-business-abuse-')
@@ -29,7 +31,7 @@ def main():
     assert handle, 'cannot inspect the owned VM process'
     try:
         with (directory/'host-heartbeat.jsonl').open('x',buffering=1) as stream:
-            for _ in range(1200):
+            for _ in range(args.samples):
                 if (directory/'host-heartbeat.stop').exists():
                     break
                 idle,host_kernel,host_user = [wintypes.FILETIME() for _ in range(3)]

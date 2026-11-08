@@ -5,6 +5,8 @@ from pathlib import Path
 import re
 import subprocess
 
+import owned_lab_environment
+
 
 def command(args,check=True):
     p=subprocess.run([str(x) for x in args],capture_output=True,text=True,timeout=60)
@@ -16,8 +18,8 @@ def main():
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('operation',choices=['setup','stop'])
     p.add_argument('--root',type=Path,required=True);a=p.parse_args();root=a.root
     assert re.fullmatch(r'/var/lib/owaf-joint-[a-f0-9]{8}',str(root))
-    assert command(['systemd-detect-virt','--vm'])=='oracle'
     f=json.loads((root/'fixture.private.json').read_text());path=root/'fair-lanes.json'
+    kind=owned_lab_environment.environment(f)
     if a.operation=='stop':
         if path.exists():
             for lane in json.loads(path.read_text()).values():command(['systemctl','stop',lane['unit']],False)
@@ -34,8 +36,9 @@ def main():
     path.write_text(json.dumps(lanes));path.chmod(0o600)
     for lane in lanes.values():
         children=lane.get('max_children',16)
+        slice_args=['--property=Slice=jiro-m4.slice'] if kind=='wsl2' else []
         command(['systemd-run','--collect','--unit='+lane['unit'],'--property=DynamicUser=yes',
-                 '--property=MemoryMax='+str(64 if children==16 else 128)+'M','--property=TasksMax=256','/usr/bin/socat',
+                 '--property=MemoryMax='+str(64 if children==16 else 128)+'M','--property=TasksMax=256',*slice_args,'/usr/bin/socat',
                  'TCP-LISTEN:'+str(lane['port'])+',bind=127.0.0.1,reuseaddr,fork,max-children='+str(children),
                  'TCP:127.0.0.1:'+str(f['ports']['proxy'])+',bind='+lane['peer']])
     # Account all relay children through their service cgroups. The legacy
@@ -44,10 +47,13 @@ def main():
     measurement=root/'measurement.json';m=json.loads(measurement.read_text())
     for name,lane in lanes.items():
         group=command(['systemctl','show',lane['unit'],'-p','ControlGroup','--value'])
-        assert group.startswith('/system.slice/owaf-fair-')
+        parent=(str(owned_lab_environment.ALLOCATION).removeprefix('/sys/fs/cgroup')
+                if kind=='wsl2' else '/system.slice')
+        assert group.startswith(parent+'/owaf-fair-')
         m['cgroups']['source-relay-'+name]='/sys/fs/cgroup'+group
     measurement.write_text(json.dumps(m));measurement.chmod(0o600)
-    command(['systemd-run','--collect','--unit='+f['units']['monitor'],'--property=MemoryMax=128M',
+    slice_args=['--property=Slice=jiro-m4.slice'] if kind=='wsl2' else []
+    command(['systemd-run','--collect','--unit='+f['units']['monitor'],'--property=MemoryMax=128M',*slice_args,
              '/usr/bin/python3',root.__str__().replace('/var/lib/owaf-joint-','/tmp/owaf-joint-')+'/m4_joint_business_guest.py',
              'monitor','--root',root,'--sources',str(root).replace('/var/lib/','/tmp/')])
     print(json.dumps(lanes))

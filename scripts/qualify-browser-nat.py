@@ -1,4 +1,4 @@
-"""Full browser assets, authenticated sessions and shared-IP uploads in the owned M4 VM."""
+"""Full browser assets, authenticated sessions and shared-IP uploads in the owned M4 Linux lab."""
 import argparse
 from collections import Counter
 import importlib.util
@@ -97,19 +97,19 @@ def phase(lab, proxies, name, controls, shared, waves, sequential=False,
             thread.join(timeout=90)
             assert not thread.is_alive(), 'abuse request did not finish'
     (lab.out/(name+'-runner.log')).write_text(process.stdout+process.stderr)
-    assert process.returncode == 0, 'browser harness failed, inspect retained private evidence'
     assert sha(source.read_bytes()) == lab.report['browser_source_sha256']
     for proxy in proxies:
         proxy.wait_idle()
         assert proxy.saturated == 0, 'measurement proxy exhausted its own capacity'
     active_seconds = time.monotonic()-started
     observation_seconds = max(30,seconds)
-    time.sleep(max(0,observation_seconds-active_seconds))
     browser = json.loads(result_path.read_text())
     flows = browser['initial_uploads'] + [upload for wave in browser['waves']
               for session in wave['sessions'] for upload in session['uploads']]
     lab.files.extend(flows)
     (lab.out/'files.json').write_text(json.dumps(lab.files))
+    assert process.returncode == 0, 'browser harness failed, inspect retained private evidence'
+    time.sleep(max(0,observation_seconds-active_seconds))
     after = lab.drain()
     end = lab.guest('mark')
     rows = lab.records[first:]
@@ -175,17 +175,20 @@ def main():
         raise RuntimeError('qualification requires assertions')
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--package',type=Path,required=True)
-    parser.add_argument('--disposable-vm',action='store_true',required=True)
+    parser.add_argument('--wsl-fixture',type=Path)
+    parser.add_argument('--disposable-vm',action='store_true')
     parser.add_argument('--waves',type=int,default=4)
     parser.add_argument('--prior-files',type=Path,action='append',default=[])
     parser.add_argument('--linux-qualification',type=Path)
     parser.add_argument('--abuse-seconds',type=int,default=0)
     parser.add_argument('--gateway-cpu-quota',type=int,choices=[0,200],default=0)
+    parser.add_argument('--gateway-gomaxprocs',type=int,choices=[0,2],default=0)
     parser.add_argument('--nat-client-buffer-mib',type=int,choices=[12,24],default=12)
     parser.add_argument('--nat-body-rate-kib',type=int,choices=[0,160],default=0)
     parser.add_argument('--nat-body-burst-kib',type=int,choices=[0,2048,3072,4096],default=0)
     parser.add_argument('--shared-abuse-seconds',type=int,default=0)
     args = parser.parse_args()
+    assert args.disposable_vm or args.wsl_fixture, 'select the disposable VM or an owned WSL2 fixture'
     assert 1 <= args.waves <= 20
     assert args.abuse_seconds == 0 or (60 <= args.abuse_seconds <= 300 and args.abuse_seconds%60 == 0)
     assert args.abuse_seconds or (args.gateway_cpu_quota == 0 and args.nat_client_buffer_mib == 12)
@@ -196,9 +199,15 @@ def main():
                'm4_joint_business_guest.py','m4_joint_fair_guest.py','m4_joint_domains.php','m4_joint_files.php',
                'm4_business_guest.py','m4_browser_seed.php','joint_upload_data.py','qualify-joint-fairness.py',
                'qualify-joint-abuse.py','m4_joint_abuse_state.php','m4_joint_store_state.php']
-    lab = FairLab(args.package,sources,vcpus=4,lane_connections=64)
+    if args.wsl_fixture:
+        from wsl_fair_lab import WSLFairLab
+        sources.append('wsl_fair_lab.py')
+        lab = WSLFairLab(args.package,sources,args.wsl_fixture,vcpus=4,lane_connections=64)
+    else:
+        lab = FairLab(args.package,sources,vcpus=4,lane_connections=64)
     lab.fixture['qualification_resources'] = dict(max_concurrent=64,max_connections=128)
     lab.fixture['gateway_cpu_quota_percent'] = args.gateway_cpu_quota
+    lab.fixture['gateway_gomaxprocs'] = args.gateway_gomaxprocs
     lab.report.update(experiment='Chromium authenticated asset bursts and real shared TCP source',
                       qualification_resources=lab.fixture['qualification_resources'],files=[],screen_only=True)
     lab.files = []
@@ -211,10 +220,11 @@ def main():
     original = None
     cpu_changed = False
     try:
-        info = lab.info()
-        assert 'VMState="poweroff"' in info and re.search(r'^cpus=1$',info,re.M)
-        lab.run([lab.vbox,'modifyvm',lab.vm.name,'--cpus','4'])
-        cpu_changed = True
+        if not args.wsl_fixture:
+            info = lab.info()
+            assert 'VMState="poweroff"' in info and re.search(r'^cpus=1$',info,re.M)
+            lab.run([lab.vbox,'modifyvm',lab.vm.name,'--cpus','4'])
+            cpu_changed = True
         lab.start()
         lab.report['gateway_cpu_control'] = lab.fixture['gateway_cpu_control']
         if args.linux_qualification:

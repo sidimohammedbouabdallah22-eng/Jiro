@@ -1,5 +1,26 @@
 # Progress toward an SMB deployment
 
+8 November 2026, full local WSL2 endurance completes. Baseline and all three
+five-minute external-abuse profiles pass every workload/resource gate. The
+five-minute shared-source profile completes but refuses legitimate uploads.
+Independent checks reconcile 19,087 requests, 136 exact files and 5,625 security
+occurrences in 1,792 identical receiver records. Ingest timeouts, queue loss,
+failed writes and export failures are zero. Maximum sampling gap is 1.019 seconds
+and maximum one-minute CPU is 70.18%. Thirty-two false proofs are rejected.
+The dedicated distribution and original VM are stopped. M4 remains open for
+shared-source contention and the remaining deployment/review/pilot gates.
+[Full results and scope](M4-NAT-ABUSE.md).
+
+8 November 2026, local qualification backend. Idle-host VirtualBox testing still
+reproduces long sampling/acknowledgement delays. Browser failure diagnostics and
+partial-upload evidence retention are fixed with regressions. A dedicated WSL2
+lab reuses the checksum-verified owned business fixtures and the same server
+binary in an enforced four-CPU/four-GiB service slice. Its short baseline and
+all external-abuse phases pass. All 4,265 requests, forty files and 1,043 security
+occurrences reconcile with zero ingest timeouts and a 1.005-second maximum
+sampling gap. Thirty-two false proofs are rejected. The shared-source upload
+boundary remains failed. M4 remains open. [Profile and evidence](M4-NAT-ABUSE.md).
+
 8 November 2026, export recovery and longer M4 testing. A reproduced empty-outbox
 read-timeout health bug is fixed with a failing-before-fix regression. Two clean
 two-MiB-burst baselines fail, including a legitimate upload refusal, rejecting

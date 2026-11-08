@@ -37,6 +37,9 @@ class Lab:
         permissions.restrict_artifacts(self.out)
         source = self.out / 'source'
         source.mkdir()
+        sources = list(sources)
+        if 'm4_joint_business_guest.py' in sources and 'owned_lab_environment.py' not in sources:
+            sources.append('owned_lab_environment.py')
         hashes = {}
         for name in sources:
             data = (self.repo / 'scripts' / name).read_bytes()
@@ -138,17 +141,28 @@ class Lab:
                 self.records.append(row)
             c.close()
 
-    def start(self):
+    def configure_ssh(self, port, identity, known_hosts):
+        opts = ['-i', identity, '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5',
+                '-o', 'ServerAliveInterval=5', '-o', 'ServerAliveCountMax=3',
+                '-o', 'StrictHostKeyChecking=yes', '-o', 'UserKnownHostsFile='+str(known_hosts)]
+        self.ssh = ['ssh', *opts, '-p', str(port), 'qualifier@127.0.0.1']
+        self.scp = ['scp', *opts, '-P', str(port)]
+
+    def create_tunnel(self, forwarding):
+        return subprocess.Popen([str(x) for x in [*self.ssh[:-1], '-N', '-o',
+            'ExitOnForwardFailure=yes', *forwarding, self.ssh[-1]]],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def connect(self):
         info = self.info()
+        self.report['vm_timing_profile'] = {key:re.search(r'^'+key+r'="([^"]+)"$',info,re.M)[1]
+                                           for key in ['paravirtprovider','effparavirtprovider','hpet']}
+        self.report['vm_timing_profile']['cpu_execution_cap'] = int(re.search(r'^cpuexecutioncap=(\d+)$',info,re.M)[1])
         assert 'cpus='+str(self.vcpus)+'\n' in info and 'memory=4096\n' in info
         # Refuse overlap with another qualification or an operator-owned session.
         assert 'VMState="poweroff"' in info, 'CPU lab requires the owned VM to be powered off first'
         port = re.search(r'Forwarding\(0\)="ssh,tcp,127\.0\.0\.1,(\d+),,22"', info)[1]
-        opts = ['-i', self.vm/'identity', '-o', 'BatchMode=yes', '-o', 'ConnectTimeout=5',
-                '-o', 'ServerAliveInterval=5', '-o', 'ServerAliveCountMax=3',
-                '-o', 'StrictHostKeyChecking=yes', '-o', 'UserKnownHostsFile='+str(self.vm/'known_hosts')]
-        self.ssh = ['ssh', *opts, '-p', port, 'qualifier@127.0.0.1']
-        self.scp = ['scp', *opts, '-P', port]
+        self.configure_ssh(port,self.vm/'identity',self.vm/'known_hosts')
         self.run([self.vbox, 'startvm', self.vm.name, '--type', 'headless'])
         for _ in range(90):
             if self.run([*self.ssh, 'true'], check=False).returncode == 0:
@@ -159,6 +173,9 @@ class Lab:
         actual_cpus=int(self.run([*self.ssh,'getconf _NPROCESSORS_ONLN']).stdout)
         assert actual_cpus==self.vcpus
         self.report['guest_logical_cpus']=actual_cpus
+
+    def start(self):
+        self.connect()
         self.run([*self.ssh, 'mkdir -m 700 ' + self.remote])
         self.run([*self.scp, *(self.out/'source').iterdir(), 'qualifier@127.0.0.1:'+self.remote+'/'])
         self.run([*self.scp, self.package, 'qualifier@127.0.0.1:'+self.fixture['package']])
@@ -166,13 +183,15 @@ class Lab:
         self.fixture = self.guest('setup', self.fixture)
         self.report['backend_keepalive_directives']=self.fixture.get('backend_keepalive_directives',{})
         self.report['sampler_version']=self.fixture.get('sampler_version',1)
+        self.report['guest_clocksource']=self.fixture['guest_clocksource']
+        self.report['guest_kernel']=self.fixture['guest_kernel']
+        if 'allocation_profile' in self.fixture:
+            self.report['allocation_profile']=self.fixture['allocation_profile']
         self.private.write_text(json.dumps(self.fixture))
         forwards = []
         for port in self.ports.values():
             forwards += ['-L', f'127.0.0.1:{port}:127.0.0.1:{port}']
-        self.tunnel = subprocess.Popen([str(x) for x in [*self.ssh[:-1], '-N', '-o',
-                                      'ExitOnForwardFailure=yes', *forwards, self.ssh[-1]]],
-                                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.tunnel = self.create_tunnel(forwards)
         for _ in range(120):
             try:
                 if self.admin('health')['healthy']:
@@ -201,6 +220,12 @@ class Lab:
         return status
 
     def capture(self):
+        try:
+            journal = self.run([*self.ssh, 'sudo journalctl -u owaf-joint-'+self.tag+'-gateway.service --no-pager -o short-iso'],timeout=30,check=False)
+            (self.out/'gateway-journal.private.log').write_text(journal.stdout+journal.stderr)
+            self.report['gateway_journal_exit_code'] = journal.returncode
+        except (OSError,subprocess.TimeoutExpired) as error:
+            self.report['gateway_journal_error'] = type(error).__name__
         self.report['capture'] = self.guest('capture')
         for name, key in [('databases.tar', 'sha256'), ('resources.jsonl', 'resources_sha256')]:
             self.run([*self.scp, 'qualifier@127.0.0.1:'+self.root+'/'+name, self.out/name])
@@ -224,19 +249,27 @@ class Lab:
             if self.tunnel:
                 self.tunnel.terminate()
                 self.tunnel.wait(timeout=20)
-            if self.ssh and 'VMState="running"' in self.info():
-                self.run([*self.ssh, 'sudo poweroff'], check=False)
-                for _ in range(60):
-                    if 'VMState="poweroff"' in self.info():
-                        break
-                    time.sleep(1)
-                if 'VMState="running"' in self.info():
-                    self.report['shutdown_forced'] = True
-                    self.report['passed'] = False
-                    self.run([self.vbox, 'controlvm', self.vm.name, 'poweroff'])
-            self.report['vm_powered_off'] = 'VMState="poweroff"' in self.info()
-            self.save()
-            print(self.out/'result.json', flush=True)
+            try:
+                self.shutdown()
+            except Exception:
+                self.report['passed']=False
+                raise
+            finally:
+                self.save()
+                print(self.out/'result.json', flush=True)
+
+    def shutdown(self):
+        if self.ssh and 'VMState="running"' in self.info():
+            self.run([*self.ssh, 'sudo poweroff'], check=False)
+            for _ in range(60):
+                if 'VMState="poweroff"' in self.info():
+                    break
+                time.sleep(1)
+            if 'VMState="running"' in self.info():
+                self.report['shutdown_forced'] = True
+                self.report['passed'] = False
+                self.run([self.vbox, 'controlvm', self.vm.name, 'poweroff'])
+        self.report['vm_powered_off'] = 'VMState="poweroff"' in self.info()
 
 
 def resources(raw, begin, end, vcpus=1):
@@ -269,6 +302,19 @@ def resources(raw, begin, end, vcpus=1):
     result['logical_cpus'] = vcpus
     result['component_cpu_percent_one_vcpu'] = component
     result['component_cpu_percent'] = component/vcpus
-    result['observed_cpu_percent'] = max(component/vcpus, result['guest_busy_percent'])
+    if 'allocation' in selected[0]:
+        values = [s['allocation'] for s in selected]
+        for value in values:
+            assert value['allocated_cpus'] == vcpus == 4
+            assert value['cpu_max'] == '400000 100000'
+            assert value['cpuset'] == '0-3' and value['memory_max'] == 4 << 30
+            assert value['oom_kill'] == 0
+        assert all(b['cpu_usage_usec'] >= a['cpu_usage_usec'] for a,b in zip(values,values[1:]))
+        allocation_cpu = 100*(values[-1]['cpu_usage_usec']-values[0]['cpu_usage_usec'])/1e6/span/vcpus
+        result['allocation_cpu_percent'] = allocation_cpu
+        result['allocation_memory_peak_bytes'] = max(v['memory_current'] for v in values)
+        result['observed_cpu_percent'] = max(component/vcpus, allocation_cpu)
+    else:
+        result['observed_cpu_percent'] = max(component/vcpus, result['guest_busy_percent'])
     result['min_available_kib'] = min(s['host_available_kib'] for s in selected)
     return result

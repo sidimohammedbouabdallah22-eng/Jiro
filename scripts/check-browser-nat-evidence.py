@@ -47,6 +47,7 @@ def check(path, package):
     assert not (out/'measurement-invalid.json').exists(), 'measurement invalidated; retain as diagnostic evidence'
     report = json.loads(path.read_text())
     assert not report.get('shutdown_forced',False), 'forced lab shutdown requires diagnostic review'
+    assert not report.get('lab_shutdown_forced',False), 'forced WSL2 shutdown requires diagnostic review'
     endurance = report.get('abuse_endurance',False)
     rows = json.loads((out/'requests.json').read_text())
     files = json.loads((out/'files.json').read_text())
@@ -58,9 +59,16 @@ def check(path, package):
             'browser_passed','integrity_passed','responsiveness_passed',
             'coverage_passed','resource_budget_passed'])
     assert report['cleanup']['restored'] and report['lanes_cleanup']['stopped']
-    assert report['vm_powered_off'] and report['original_cpu_restored']
+    if report.get('lab_environment') == 'wsl2':
+        assert report['lab_stopped']
+        assert report['allocated_cpus'] == report['vcpus'] == 4
+        assert report['guest_logical_cpus'] >= report['allocated_cpus']
+        assert report['allocation_profile'] == dict(slice='jiro-m4.slice',cpu_max='400000 100000',
+            memory_max=4<<30,cpuset='0-3',allocated_cpus=4)
+    else:
+        assert report['vm_powered_off'] and report['original_cpu_restored']
+        assert report['vcpus'] == report['guest_logical_cpus'] == 4
     assert report['screen_only'] and not report['business_pilot_started']
-    assert report['vcpus'] == report['guest_logical_cpus'] == 4
     assert sha(package.read_bytes()) == report['package_sha256'] == Path(str(package)+'.sha256').read_text().split()[0]
     with tarfile.open(package) as archive:
         assert sha(archive.extractfile('usr/lib/openwaf/waf-server').read()) == report['server_sha256']
@@ -83,10 +91,22 @@ def check(path, package):
     raw = (out/'resources.jsonl').read_bytes()
     assert sha(raw) == report['capture']['resources_sha256']
     native = [json.loads(line) for line in raw.splitlines()]
+    assert all(('allocation' in sample) == (report.get('lab_environment') == 'wsl2') for sample in native)
+    if report.get('lab_environment') == 'wsl2':
+        assert all(sample['host_cpus'] == report['guest_logical_cpus'] for sample in native)
+        assert all({key:sample['allocation'][key] for key in report['allocation_profile']} ==
+                   report['allocation_profile'] for sample in native)
+    if 'guest_clocksource' in report:
+        assert all(sample.get('clocksource') == report['guest_clocksource'] for sample in native)
     if 'gateway_cpu_control' in report:
         control = report['gateway_cpu_control']
         assert control['quota_percent'] in [0,200]
         assert control['cpu_max'] == ('200000 100000' if control['quota_percent'] else 'max 100000')
+        assert control.get('gomaxprocs',0) in [0,2]
+        if 'gomaxprocs' in control:
+            fixture=json.loads((out/'fixture.private.json').read_text())
+            assert fixture['gateway_cpu_control'] == control
+            assert fixture.get('gateway_gomaxprocs',0) == control['gomaxprocs']
         assert all(sample['gateway_cpu_control']['cpu_max']==control['cpu_max'] for sample in native)
         for first,last in zip(native,native[1:]):
             for key in ['usage_usec','nr_throttled','throttled_usec']:
@@ -333,7 +353,9 @@ def check(path, package):
                 abuse_profile_qualified=qualified,
                 external_source_profile_qualified=external_qualified,
                 endurance_profile_qualified=external_qualified and min(p.get('seconds',0) for p in report['phases'][1:4])>=300,
-                scope='synthetic Chromium/API screen on one four-vCPU Linux amd64 lab')
+                scope=('synthetic Chromium/API screen in a four-CPU/four-GiB WSL2 service slice'
+                    if report.get('lab_environment') == 'wsl2' else
+                    'synthetic Chromium/API screen on one four-vCPU Linux amd64 lab'))
 
 
 if __name__ == '__main__':

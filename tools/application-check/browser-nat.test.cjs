@@ -1,6 +1,19 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
-const { waveDelay } = require('./browser-nat.cjs');
+const { waveDelay, saveFailureArtifacts } = require('./browser-nat.cjs');
+
+test('failed-page diagnostics retain errors without aborting later browser work', async () => {
+  const page = {
+    screenshot: async () => { throw new Error('screenshot timeout with private-value'); },
+    content: async () => { throw new Error('page is navigating with private-value'); },
+  };
+  const errors = await saveFailureArtifacts(page, 'unused-test-directory', 'failed-page',
+    value => value.replaceAll('private-value', '[REDACTED]'));
+  assert.deepEqual(errors, {
+    screenshot: 'screenshot timeout with [REDACTED]',
+    html: 'page is navigating with [REDACTED]',
+  });
+});
 
 test('browser waves recover delay against the original schedule', () => {
   const epoch = 1000;

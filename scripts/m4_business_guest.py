@@ -232,13 +232,15 @@ def report(root,f):
     return value
 
 
-def start(f):
+def start(f,lab_slice=None):
+    assert lab_slice in [None,'jiro-m4.slice']
     stop_packaged_fixture()
     command(['docker','start',*f['containers'].values()])
     info=json.loads(command(['docker','inspect',f['containers']['app']]))[0]
     ip=info['NetworkSettings']['Networks'][f['tag']+'-internal']['IPAddress']
     subprocess.run(['systemctl','stop',f['units']['relay']],capture_output=True)
-    command(['systemd-run','--collect','--unit='+f['units']['relay'],'--property=DynamicUser=yes',
+    slice_args=['--property=Slice='+lab_slice] if lab_slice else []
+    command(['systemd-run','--collect','--unit='+f['units']['relay'],'--property=DynamicUser=yes',*slice_args,
         '/usr/bin/socat',f"TCP-LISTEN:{f['ports']['app']},bind=127.0.0.1,reuseaddr,fork,max-children=32",f'TCP:{ip}:80'])
     wait(f"http://127.0.0.1:{f['ports']['app']}/",300)
     command(['systemctl','start',f['units']['collector'],f['units']['gateway']])

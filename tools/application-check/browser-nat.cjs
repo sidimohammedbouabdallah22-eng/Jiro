@@ -8,6 +8,22 @@ function waveDelay(epoch, intervalMs, wave, now) {
   return Math.max(0, epoch + wave * intervalMs - now);
 }
 
+async function saveFailureArtifacts(page, directory, prefix, clean) {
+  const errors = {};
+  try {
+    await page.screenshot({ path: directory + '/' + prefix + '.png', timeout: 5000 });
+  } catch (error) {
+    errors.screenshot = clean(error.message).slice(0, 800);
+  }
+  try {
+    const content = await page.content();
+    await fs.writeFile(directory + '/' + prefix + '.private.html', content);
+  } catch (error) {
+    errors.html = clean(error.message).slice(0, 800);
+  }
+  return errors;
+}
+
 async function main() {
   const [privatePath, outputPath] = process.argv.slice(2);
   const f = JSON.parse(await fs.readFile(privatePath, 'utf8'));
@@ -140,8 +156,7 @@ async function main() {
     } catch (error) {
       facts.error = clean(error.message).slice(0, 800);
       const prefix = `${f.profile}-${wave}-${users.indexOf(user)}`;
-      await page.screenshot({ path: f.outputDirectory + '/' + prefix + '.png' }).catch(() => {});
-      await fs.writeFile(f.outputDirectory + '/' + prefix + '.private.html', await page.content()).catch(() => {});
+      facts.diagnostic_errors = await saveFailureArtifacts(page, f.outputDirectory, prefix, clean);
     } finally {
       await context.close();
     }
@@ -184,7 +199,7 @@ async function main() {
     await fs.writeFile(outputPath, JSON.stringify(report, null, 2));
   }
 }
-module.exports = { waveDelay };
+module.exports = { waveDelay, saveFailureArtifacts };
 if (require.main === module) {
   main().catch(error => { console.error(error.name); process.exitCode = 1; });
 }

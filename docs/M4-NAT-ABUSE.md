@@ -296,3 +296,100 @@ one vCPU is restored.
 M4 remains open. Resolve the acknowledgement and native-sampling tail on the
 selected host before repeating the complete sequence. Retain rejected profiles,
 failed evidence and exact binary identities in the qualification ledger.
+
+## Local WSL2 qualification profile
+
+The maintainer reported gaming during earlier host measurements and requested
+continued testing on this PC. A later idle preflight measures 3.46% Windows CPU.
+The original VM still develops a 102.49-second native sampling gap during ERP
+abuse. Overlapping host utilization is about 22%, the VM process consumes 215
+CPU seconds, and gateway CPU advances 0.88 seconds during that interval. The
+earlier host-load explanation remains insufficient to attribute all delays.
+
+Run `318d207d` also exposes a secondary diagnostic failure. Reading HTML from a
+page still navigating throws before the file-write catch and aborts remaining
+browser work. Failure-artifact collection now catches screenshot and HTML errors
+independently, redacts errors and bounds screenshot collection. Completed upload
+manifests are retained before checking runner exit. Focused regressions verify
+both paths. All forty-six recovered files verify natively in a subsequent run.
+
+With `GOMAXPROCS=2`, run `c85dbcf2` completes ERP and storefront workflows with
+healthy acknowledgement status, then records 21 ingest timeouts during combined
+pressure. All twenty combined-phase browser waves are retained. Reconciliation
+covers 12,493 responses, 132 exact files, four absent refused files and 2,201
+occurrences in 707 identical sender/receiver records, with an empty outbox. The
+sequence stops before shared-source abuse. This configuration is unqualified.
+
+The local alternative uses a dedicated WSL2 distribution, the same packaged
+server and a checksum-verified cold copy of the owned Docker/business fixtures.
+The source VM is powered off with its original settings. The WSL2 host kernel is
+`6.18.33.2-microsoft-standard-WSL2`. Its service slice enforces four allocated
+CPUs through quota and cpuset, plus four GiB aggregate memory. Gateway,
+collector, Docker/containerd, application containers, relays, SSH and monitor
+share that slice. Native counters measure the aggregate allocation. Twelve
+host CPUs are recorded separately. WSL2 shares the host subsystem's kernel and
+network environment. These results describe this service-slice profile.
+
+The backend requires its ownership marker and an exclusive OS-released lease.
+Cleanup flushes its Docker services and stops only the dedicated distribution.
+Forced cleanup fails qualification. Windows localhost forwarding carries the
+existing browser/source-lane traffic. Docker-managed filtering enables the
+restored internal bridges, and application containers publish no ports. An
+initial failed bridge-network preflight is retained separately.
+
+Short run `44496138` passes baseline, ERP, storefront and simultaneous abuse
+across all workload and resource gates. Independent evidence verifies 4,265
+requests, eighty sessions, forty exact files totaling 28,672,000 bytes, and
+1,043 occurrences in 352 identical sender/receiver records. The outbox is empty,
+ingest timeouts, queue loss and failed writes are zero, and the maximum native
+sampling gap is 1.005 seconds. Maximum observed phase CPU is 66.66%. Thirty-two
+false proofs are rejected, including a forged VirtualBox-profile claim and
+false allocation/cleanup metadata. All 178 earlier committed files verify and
+four refused files remain absent after migration.
+
+Shared-source abuse still refuses legitimate uploads and fails its workload
+gates, while retaining valid resource and delivery evidence. M4 remains open
+for that operating boundary, deployment-sensitive review and
+the business pilot. The evidence reader preserves the earlier VirtualBox report
+format and independently verifies historical run `c3ec075d` after these changes.
+
+## Completed local WSL2 endurance
+
+Run `8167d19b` completes the full sequence on the same server and WSL2 allocation.
+Its baseline lasts one minute, followed by five minutes each against ERP,
+storefront, both applications and the shared source. Independent verification
+reconciles 19,087 requests, 336 browser sessions, 19,065 cache hits, 136 exact
+files totaling 97,484,800 bytes, and 5,625 security occurrences in 1,792 identical
+sender/receiver records. Forty-two refused files are absent. Thirty-two false
+proofs are rejected. Policy and application settings are restored, the dedicated
+distribution stops after flushing Docker services, and the source VM remains
+powered off with one vCPU and its original settings.
+
+| Phase | Browser workflows | Response budgets | Schedule coverage | Native evidence and CPU |
+|---|---|---|---|---|
+| Baseline | Pass | Pass | Pass | Pass |
+| ERP abuse | Pass | Pass | Pass | Pass |
+| Storefront abuse | Pass | Pass | Pass | Pass |
+| Both applications | Pass | Pass | Pass | Pass |
+| Shared-source abuse | Fail | Fail | Pass | Pass |
+
+ERP, storefront and simultaneous browser work completes in 293.66, 293.27 and
+293.47 seconds respectively, within the existing 305-second allowance. Every
+one-minute resource window passes. Maximum native sampling gap is 1.019 seconds,
+maximum phase CPU is 62.92% and maximum one-minute CPU is 70.18%, within the 80%
+budget. Peak allocation memory is 1.41 GiB. Ingest timeouts, queue loss, failed
+writes and export failures are zero, and the durable outbox is empty. Maximum
+observed writer duration is 351.34 ms. The earlier VirtualBox delay remains
+unresolved within that profile.
+
+The external-source endurance profile qualifies within these recorded bounds.
+The shared-source profile refuses all forty-two attempted uploads and remains
+unqualified. M4 stays open for that boundary, selected deployment qualification,
+independent review and the business pilot.
+
+The prepared local fixture is consumed through `--wsl-fixture` and the same
+qualification entry point. The manifest remains private with its SSH key and
+business-fixture snapshot. Resource and cleanup checks reject an unowned
+distribution, overlapping runs, unbounded allocation and a forged VM-profile
+claim. A cleanup regression also prevents a UTF-16 byte-order mark from hiding
+a still-running distribution. Failed shutdowns retain their failed state on disk.

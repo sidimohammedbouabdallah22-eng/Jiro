@@ -1,8 +1,8 @@
 # Current source and qualification ledger
 
-## Published Jiro source
+## Published Jiro runtime baseline
 
-Public revision `18a29067cad374a192a1dcb067d5ab3c77fcf7a3` uses the
+Revision `49303daae33019bab2f4260234d94b3cda8e38e6` uses the
 `github.com/sidimohammedbouabdallah22-eng/Jiro` module and Jiro console branding.
 It resolves Windows short directory names before disposable recovery containment
 checks. A regression reproduces the earlier failure and verifies the fix,
@@ -11,7 +11,7 @@ including rejection of external state paths.
 All nine hosted verification jobs pass on that revision, including both platform
 suites, Linux race checks, browser workflows, service packaging, mixed load,
 and 5,193 CRS cases on each platform.
-[Hosted verification](https://github.com/sidimohammedbouabdallah22-eng/Jiro/actions/runs/42468143920).
+[Hosted verification](https://github.com/sidimohammedbouabdallah22-eng/Jiro/actions/runs/42471401755).
 
 The business endurance measurements below identify earlier packaged binaries.
 Repeat package-sensitive gates against the selected Jiro release package before
@@ -37,6 +37,26 @@ acknowledgement. All 4,502 requests, fifty-two files and 659 occurrences in 250
 identical receiver records reconcile. Remaining abuse phases have not started.
 Full package-sensitive qualification remains open.
 [Measurements and remaining limits](M4-NAT-ABUSE.md).
+
+The local WSL2 profile reuses this exact packaged server and a checksum-verified
+cold business-fixture copy. Its service slice enforces four allocated CPUs and
+four GiB aggregate memory, with twelve host CPUs recorded separately. Short
+baseline, ERP, storefront and simultaneous-abuse phases pass every workload,
+native-resource and delivery gate. Independent evidence verifies 4,265 requests,
+forty exact files and 1,043 occurrences in 352 identical receiver records, with
+zero ingest timeouts and a maximum 1.005-second native gap. Thirty-two false
+claims are rejected. Shared-source upload contention remains unqualified.
+These measurements retain their WSL2 service-slice scope.
+
+The subsequent full sequence completes a one-minute baseline and all four
+five-minute abuse phases on this exact server. External-source endurance passes
+all gates. Verification covers 19,087 requests, 136 exact files, 5,625 occurrences
+in 1,792 identical receiver records and forty-two absent refused files. Ingest
+timeouts, queue loss, failed writes and export failures are zero. Maximum native
+gap is 1.019 seconds and maximum one-minute allocation CPU is 70.18%. Thirty-two
+false proofs are rejected. Shared-source uploads remain refused. The WSL2 lab
+stops cleanly and the source VM remains off with its original settings. M4 stays
+open for shared-source, deployment, independent-review and pilot gates.
 
 ## Body-budget candidate 32d099011bde
 
