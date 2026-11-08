@@ -183,7 +183,7 @@ def main():
     parser.add_argument('--gateway-cpu-quota',type=int,choices=[0,200],default=0)
     parser.add_argument('--nat-client-buffer-mib',type=int,choices=[12,24],default=12)
     parser.add_argument('--nat-body-rate-kib',type=int,choices=[0,160],default=0)
-    parser.add_argument('--nat-body-burst-kib',type=int,choices=[0,3072,4096],default=0)
+    parser.add_argument('--nat-body-burst-kib',type=int,choices=[0,2048,3072,4096],default=0)
     parser.add_argument('--shared-abuse-seconds',type=int,default=0)
     args = parser.parse_args()
     assert 1 <= args.waves <= 20
@@ -281,6 +281,13 @@ def main():
                     seconds = args.shared_abuse_seconds
                 phase(lab,proxies,name,candidate,True,seconds//15,
                       targets=targets,seconds=seconds,attack_lane=lane)
+                if name == 'nat-baseline':
+                    baseline = lab.report['phases'][-1]
+                    lab.report['baseline_qualified'] = all(baseline[key] for key in [
+                        'browser_passed','integrity_passed','responsiveness_passed',
+                        'coverage_passed','resource_budget_passed'])
+                    lab.save()
+                    assert lab.report['baseline_qualified'], 'baseline failed; resolve host/workload limits before abuse qualification'
             lab.report['candidate_browser_passed'] = all(p['browser_passed'] for p in lab.report['phases'])
             lab.report['abuse_profile_qualified'] = all(p['browser_passed'] and p['integrity_passed'] and
                 p['responsiveness_passed'] and p['coverage_passed'] and p['resource_budget_passed'] for p in lab.report['phases'])

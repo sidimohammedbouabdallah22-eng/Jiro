@@ -50,6 +50,35 @@ def main():
         if original.get('gateway_cpu_control'):
             mutations['native-cpu-cap'] = lambda r:r['gateway_cpu_control'].__setitem__('cpu_max','100000 100000')
     cases = []
+    if 'baseline_qualified' in original:
+        mutations['baseline-qualification'] = lambda r:r.__setitem__('baseline_qualified',not r['baseline_qualified'])
+    browser_path = args.report.parent/original['phases'][0]['browser_result']
+    browser_original = json.loads(browser_path.read_text())
+    if browser_original.get('schedule_version') == 2:
+        schedule_mutations = {
+            'schedule-deadline':lambda b:b['waves'][1].__setitem__('scheduled_start_ms',1),
+            'schedule-delay':lambda b:b['waves'][0].__setitem__('start_delay_ms',-1),
+            'schedule-order':lambda b:b['waves'][1].__setitem__('wave',0),
+            'schedule-duration':lambda b:b.__setitem__('work_elapsed_ms',0),
+        }
+        for name,mutate in schedule_mutations.items():
+            browser = copy.deepcopy(browser_original)
+            mutate(browser)
+            data_path = args.report.parent/('invalid-browser-'+name+'.json')
+            assert not data_path.exists(), 'retain existing negative browser evidence'
+            data_path.write_text(json.dumps(browser))
+            changed = copy.deepcopy(original)
+            changed['phases'][0]['browser_result'] = data_path.name
+            changed['phases'][0]['browser_result_sha256'] = checker.sha(data_path.read_bytes())
+            path = args.report.parent/('rejected-browser-'+name+'.json')
+            assert not path.exists(), 'retain existing negative evidence'
+            path.write_text(json.dumps(changed))
+            try:
+                checker.check(path,args.package)
+            except AssertionError:
+                cases.append(dict(name=name,rejected=True))
+            else:
+                raise AssertionError('false browser timing accepted '+name)
     for name, mutate in mutations.items():
         changed = copy.deepcopy(original)
         mutate(changed)

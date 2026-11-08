@@ -1,6 +1,18 @@
-# OpenWAF: plan toward a dependable small-business WAF
+# Jiro roadmap toward a dependable small-business WAF
 
-Planning date: 2 November 2026. This document is a proposed product and engineering roadmap, not a claim that the capabilities below already exist. The current implementation is described in README.md and ARCHITECTURE.md. The project license remains a provisional choice pending the owner's decision.
+Planning began on 2 November 2026. Current implementation and release boundaries
+are described in README.md and ARCHITECTURE.md. The maintainer finalized
+Apache-2.0 and published the project as Jiro on 7 November 2026. Historical
+qualification records retain their original OpenWAF binary identities.
+
+M4 follow-up on 7 November 2026. The latest completed guarded endurance run
+preserves file and event integrity while failing schedule, sampling and
+same-source browser gates. Fixed browser scheduling, independently checked
+timestamps and a required no-abuse baseline address measurement quality.
+Heavy contention on the current Windows host remains an observed constraint.
+Repeat the finalized harness on a host with headroom, then repeat the selected
+Jiro package's deployment-sensitive gates before the business pilot.
+[Findings and retained evidence](docs/M4-NAT-ABUSE.md).
 
 First implementation update: schema-1 application identity, scoped query/body-field exceptions with expiry, durable policy revisions, comparison/rollback UI, single-writer leases and offline policy compilation are implemented. A separate Caddy compatibility lab now exercises 48 focused cases with identical CRS files. See [the security contract](docs/SECURITY_CONTRACT.md), [edge decision](docs/adr/0001-edge-connector.md), and [history decision](docs/adr/0002-policy-history.md). This is progress on M0/M1, not completion of the production gates. The next increment adds all 5,193 CRS cases with explicit platform expectations, process admission/buffer/connection limits, and bounded durable SQLite security events. See docs/REGRESSION-AND-OPERATING-LIMITS.md for raw differences and limitations. Focused HTTP/2, streaming, WebSocket, shutdown and process-crash recovery checks now pass on Windows and Linux. A bounded mixed-load probe records CPU, memory, rejection and event-loss evidence. See docs/PROTOCOL-AND-RECOVERY.md. Acknowledged group commits, counted overload summaries, a durable export outbox/reference collector and mixed-load/outage/restart soak tooling are now implemented; see docs/EVENT-DELIVERY.md for evidence and bounds. Verified offline recovery sets, coordinated sender/receiver checkpoint checks, guarded upgrade rehearsals and prepared rollback tooling are now implemented; see docs/BACKUP-RESTORE-UPGRADES.md. Multi-hour/days-long sizing, power-loss, live deployment and exhaustive protocol qualification remain open.
 

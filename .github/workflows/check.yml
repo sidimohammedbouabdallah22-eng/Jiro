@@ -59,6 +59,8 @@ jobs:
           node-version: '22'
       - run: go build -o bin/openwaf ./cmd/waf-server
       - run: npm ci --prefix tools/ui-check
+      - run: node --test tools/application-check/browser-nat.test.cjs
+      - run: python3 -m unittest discover -s scripts -p test_browser_nat_evidence.py
       - run: npx playwright install --with-deps chromium
         working-directory: tools/ui-check
       - run: node tools/ui-check/check.cjs

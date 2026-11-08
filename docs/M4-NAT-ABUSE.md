@@ -138,3 +138,96 @@ External-source and same-source outcomes have distinct qualification flags.
 Completing an endurance run establishes support only when its browser,
 responsiveness, coverage, native-resource and durable-evidence gates pass.
 The verifier recomputes all sixty-second windows. M4 remains open.
+
+## Completed three-MiB-burst endurance
+
+Run `m4-business-abuse-ca2019be` completed the recorded one-minute baseline,
+three five-minute external-abuse phases and one-minute shared-source boundary.
+Independent verification reconciles 14,683 requests, 272 browser sessions,
+15,438 cache hits, 136 committed files totaling 97,484,800 bytes, and 3,760
+security occurrences in 1,188 identical sender/receiver records. Ten refused
+files are absent. The outbox is empty and ingest timeouts are zero. Twenty-four
+false proofs are rejected.
+
+| Phase | Browser workflows | Response budgets | Schedule coverage | Native resource evidence |
+|---|---|---|---|---|
+| Baseline | Pass | Pass | Pass | Pass |
+| ERP abuse | Pass | Fail | Fail | Fail |
+| Storefront abuse | Pass | Pass | Pass | Fail |
+| Both applications | Pass | Pass | Fail | Pass |
+| Shared-source abuse | Fail | Fail | Pass | Pass |
+
+ERP abuse takes 318.87 seconds of browser work for its 300-second phase and
+includes a 31.52-second wave. Simultaneous abuse takes 307.23 seconds, exceeding
+the existing five-second coverage allowance. Native sampling gaps of 16.718
+seconds during ERP abuse and 4.137 seconds during storefront abuse invalidate
+their resource claims. The earlier host heartbeat starts after those gaps, so
+their host-versus-guest cause remains unresolved. Successful file delivery and
+event reconciliation establish those properties within this run. The workload
+and resource profile remains unqualified.
+
+## Browser timing and host diagnostics
+
+The next harness revision anchors browser waves to a single monotonic schedule,
+including initial upload time. A slow wave retains its recorded start delay.
+Later fast waves can recover schedule drift without dropping workflows. Exact
+scheduled/actual starts and total work duration are retained and independently
+checked. Timer wakeups are checked again against the deadline. Two deterministic
+scheduling regressions cover recovery after a slow wave and persistent overload.
+Existing latency, coverage, resource and delivery gates continue to apply.
+
+Abuse qualification now requires its no-abuse baseline to pass browser,
+integrity, latency, schedule and resource budgets before starting hostile work.
+Invalidated measurements carry `measurement-invalid.json`, which the independent
+checker rejects before reading qualification claims.
+
+Run `m4-business-abuse-c99f7a69` is retained as diagnostic evidence only. A brief
+timer-rounding edit occurred after the baseline started and was restored to the
+captured bytes. The invalidation marker prevents its use for qualification.
+Host measurement also observed approximately 95% CPU usage with substantial
+competition from another host process. Its no-abuse browser baseline takes
+116.53 seconds for a 60-second schedule. After ERP pressure, the drain health
+gate fails with two ingest acknowledgement timeouts, despite an empty outbox
+and zero failed writes or dropped queue entries in the captured status.
+All twenty committed files verify, totaling 14,336,000 bytes. Captured databases
+and host/native samples are retained for diagnosis. Cleanup restored policy,
+stopped the source relays, powered off the VM and restored its one-vCPU setting.
+
+This diagnostic run uses the earlier `32d099011bde` package to isolate measurement
+changes. The next qualifying run requires the finalized harness, a passing
+baseline and the selected package identity. M4 remains open.
+
+## Frozen-schedule repeat and two-MiB screen, 8 November 2026
+
+Run `m4-business-abuse-c3ec075d` uses the finalized schedule and a three-MiB
+burst. All five phases have valid native resource evidence and pass their CPU
+budgets. Baseline and the individual ERP/storefront phases pass all workload
+gates. Simultaneous abuse completes the browser workflows but takes 78.30
+seconds for a 60-second phase, with file p95 11.26 seconds. The shared-source
+boundary again refuses legitimate uploads and fails its workload gates.
+
+Independent evidence reconciles 3,983 requests, eighty sessions, forty committed
+files totaling 28,672,000 bytes, ten absent refused files, and 756 occurrences in
+282 identical sender/receiver records. The outbox is empty, ingest timeouts are
+zero, and twenty-nine false claims are rejected, including fabricated browser
+timestamps and baseline qualification. Cleanup succeeds and the host heartbeat
+observes VM exit. This is a short screen. Extended endurance remains open.
+
+The next experiment uses a two-MiB body burst. Two unknown-length requests each
+reserve the one-MiB envelope and fit this burst. This tests a smaller initial
+inspection burst while retaining the supported envelope and the 160-KiB/s rate.
+
+Run `m4-business-abuse-245e1ef5` correctly stops before hostile work because its
+baseline takes 67.14 seconds and its slowest wave takes 20.53 seconds. Its 632
+requests include ten exact committed files totaling 7,168,000 bytes, with zero
+ingest timeouts. The two-MiB abuse profile remains untested. Original failed
+results are preserved. Policy restoration succeeds, but graceful shutdown and
+an ACPI request leave the hypervisor reporting the VM as running. Explicit
+poweroff completes cleanup and restores one vCPU, recorded separately in
+`cleanup-recovery.json`.
+
+The cleanup helper now falls back to powering off its owned VM after a stalled
+graceful shutdown, records `shutdown_forced` and fails the run. The browser
+evidence checker rejects forced-shutdown results. Unit regressions exercise
+the fallback and rejection. Continue with a passing baseline on the selected
+host before another abuse/endurance run or final-package repetition.

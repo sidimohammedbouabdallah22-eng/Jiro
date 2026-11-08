@@ -4,6 +4,10 @@ const fs = require('node:fs/promises');
 const assert = require('node:assert/strict');
 const { createHash } = require('node:crypto');
 
+function waveDelay(epoch, intervalMs, wave, now) {
+  return Math.max(0, epoch + wave * intervalMs - now);
+}
+
 async function main() {
   const [privatePath, outputPath] = process.argv.slice(2);
   const f = JSON.parse(await fs.readFile(privatePath, 'utf8'));
@@ -144,9 +148,17 @@ async function main() {
     return facts;
   }
   try {
+    const epoch = performance.now();
+    report.schedule_version = 2;
+    report.interval_ms = f.intervalMs;
     const apiContext = await browser.newContext({ proxy: { server: f.proxies[0], bypass: '<-loopback>' } });
     try { report.initial_uploads = await uploadPair(apiContext, 'api'); } finally { await apiContext.close(); }
     for (let wave = 0; wave < f.waves; wave++) {
+      let delay = waveDelay(epoch, f.intervalMs, wave, performance.now());
+      while (delay > 0) {
+        await new Promise(resolve => setTimeout(resolve, Math.ceil(delay)));
+        delay = waveDelay(epoch, f.intervalMs, wave, performance.now());
+      }
       const start = performance.now();
       const results = [];
       if (f.sequential) {
@@ -154,10 +166,13 @@ async function main() {
       } else {
         results.push(...await Promise.all(users.map(user => session(user, wave))));
       }
-      report.waves.push({ wave, sessions: results, elapsed_ms: performance.now() - start });
+      const scheduledStart = wave * f.intervalMs;
+      report.waves.push({ wave, sessions: results, elapsed_ms: performance.now() - start,
+        scheduled_start_ms: scheduledStart, started_ms: start - epoch,
+        start_delay_ms: Math.max(0, start - epoch - scheduledStart) });
       await fs.writeFile(outputPath, JSON.stringify(report, null, 2));
-      if (wave + 1 < f.waves) await new Promise(resolve => setTimeout(resolve, Math.max(0, f.intervalMs - (performance.now() - start))));
     }
+    report.work_elapsed_ms = performance.now() - epoch;
     report.passed = report.waves.every(wave => wave.sessions.every(session => session.passed)) &&
       report.responses.every(response => response.status < 400) && report.failures.length === 0 &&
       report.initial_uploads.every(upload => upload.exact);
@@ -169,4 +184,7 @@ async function main() {
     await fs.writeFile(outputPath, JSON.stringify(report, null, 2));
   }
 }
-main().catch(error => { console.error(error.name); process.exitCode = 1; });
+module.exports = { waveDelay };
+if (require.main === module) {
+  main().catch(error => { console.error(error.name); process.exitCode = 1; });
+}

@@ -1,5 +1,28 @@
 # Progress toward an SMB deployment
 
+7 November 2026, resumed M4 qualification. The three-MiB body-burst endurance
+run reconciles 14,683 requests, 136 committed files and 3,760 occurrences in
+1,188 identical sender/receiver records, but fails coverage, native sampling
+and same-source browser gates. The browser schedule now uses a fixed monotonic
+epoch, records start delays and checks its timing evidence independently.
+Abuse testing requires a passing no-abuse baseline. Invalidated measurements
+are rejected explicitly. A subsequent diagnostic run observes heavy host CPU
+contention and two ingest acknowledgement timeouts. Its twenty committed files
+verify and cleanup restores the VM to powered off with one vCPU. The diagnostic
+source-edit invalidation and all failures are retained. A repeat on an eligible
+host and final-package qualification remain open.
+[Results and measurement changes](M4-NAT-ABUSE.md).
+
+8 November 2026. The clean fixed-schedule screen passes baseline and individual
+ERP/storefront abuse gates. Combined pressure still fails file latency and
+coverage, and shared-source pressure refuses legitimate uploads. All 3,983
+requests, forty committed files and 756 occurrences in 282 identical receiver
+records reconcile. Twenty-nine false evidence cases are rejected. A two-MiB
+burst experiment stops at its failed baseline before hostile work. Ten files
+verify, and stalled VM shutdown is recovered. Cleanup now records and rejects
+forced shutdowns for qualification. The VM is off with one vCPU. Extended
+endurance, final-package checks, independent review and pilot gates remain open.
+
 Update on 6 November 2026: the unchanged candidate passes a thirty-minute joint ERP/storefront phase, all 2,250 endurance requests and all six five-minute resource/latency windows. The full suite reconciles 2,888 requests and 42 security occurrences. CPU-abuse qualification retains a failed wide-Unicode run with eight timeouts; a separate one-slot/body/rate mitigation run reconciles 1,364 requests and 911 security occurrences. One slot still saturates CPU, while the stricter 64-KiB/one-request-per-second profile restricts legitimate uploads. Longer hostile load, reverse/simultaneous attacks and actual deployment qualification remain open. [Exact evidence and tradeoffs](M4-JOINT-ENDURANCE-ABUSE.md).
 
 The 5 November boundary/replay candidate `1af405f4227a` adds exact-limit JSON/multipart coverage and a joint ERP/storefront profile. All 1,013 requests and 47 security occurrences reconcile. The same package repeats all 19 ERP and eight storefront functional cases. Bursts reach 32 clients; a five-minute profile with one 700-KiB ERP file every four seconds plus one storefront read/second passes. The heavier upload screen saturates the one-vCPU guest and is rejected as an operating profile. This is preliminary lab evidence, not customer sizing. [Joint workload and limits](M4-JOINT-BUSINESS.md), [exact-build ledger](M4-CURRENT-CANDIDATE.md). Longer endurance, broader authenticated writes and final-package operational requalification remain open.

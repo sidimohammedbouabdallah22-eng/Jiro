@@ -1,4 +1,23 @@
-# Current candidate 32d099011bde
+# Current source and qualification ledger
+
+## Published Jiro source
+
+Public revision `1afdf26c9dbcdae03b27ffa9cc8dd70bdc8f1d27` uses the
+`github.com/sidimohammedbouabdallah22-eng/Jiro` module and Jiro console branding.
+It resolves Windows short directory names before disposable recovery containment
+checks. A regression reproduces the earlier failure and verifies the fix,
+including rejection of external state paths.
+
+All nine hosted verification jobs pass on that revision, including both platform
+suites, Linux race checks, browser workflows, service packaging, mixed load,
+and 5,193 CRS cases on each platform.
+[Hosted verification](https://github.com/sidimohammedbouabdallah22-eng/Jiro/actions/runs/42415470332).
+
+The business endurance measurements below identify earlier packaged binaries.
+Repeat package-sensitive gates against the selected Jiro release package before
+claiming a qualified current release. M4 and the business pilot remain open.
+
+## Body-budget candidate 32d099011bde
 
 Candidate `32d099011bde` adds opt-in client/application request-body byte
 budgets alongside the existing request-rate, concurrency and buffer controls.
@@ -10,7 +29,7 @@ checks. [Configuration semantics](CLIENT-BODY-RATE.md).
 Windows and Linux full pipelines pass, including operational tests, vet and
 5,193 CRS cases each. Focused Linux race checks cover byte admission, ordinary
 rate controls, admission waiting and the completed-body deadline regression.
-All 708 current runtime source files match the frozen build.
+All 708 runtime files matched its source snapshot when this build was frozen.
 
 The archive SHA-256 is
 `7bdfc03cf31dfbc0687d05419714d06c6155b3846c8b7bb232d9dcd75a7c5a36`.
@@ -21,11 +40,24 @@ The first guarded abuse screen independently reconciles 4,096 requests,
 forty-two committed files and 864 occurrences into 310 identical receiver
 records. Twenty-four false proofs are rejected. Individual ERP/storefront
 abuse passes, while combined and same-source pressure remain failed screens.
-The reduced-burst endurance experiment is tracked separately.
+The reduced-burst endurance experiment completed with exact file/event
+accounting, but failed coverage, sampling and same-source browser gates.
+Its 14,683 requests, 136 committed files and 3,760 occurrences in 1,188 identical
+sender/receiver records verify independently. Twenty-four false proofs were
+rejected. This profile remains unqualified.
 [Abuse results, experiments and limits](M4-NAT-ABUSE.md).
 
 M4 stays open for the remaining workload/resource gates, selected-host sizing,
 final-package deployment-sensitive repetitions, independent review and pilot.
+
+The 8 November fixed-schedule screen on this same package reconciles 3,983
+requests, forty committed files and 756 occurrences in 282 receiver records.
+Its individual-app profiles pass, while simultaneous and shared-source workloads
+remain failed. Twenty-nine false proofs are rejected. A two-MiB burst screen
+stops at its failed no-abuse baseline. Its forced VM shutdown is retained as a
+failure and recovered separately. These are measurement-harness changes and
+screens against the named earlier binary. Jiro package-sensitive repetitions
+and longer endurance remain open.
 
 ## Previous candidate 20031ed996b3
 

@@ -230,6 +230,10 @@ class Lab:
                     if 'VMState="poweroff"' in self.info():
                         break
                     time.sleep(1)
+                if 'VMState="running"' in self.info():
+                    self.report['shutdown_forced'] = True
+                    self.report['passed'] = False
+                    self.run([self.vbox, 'controlvm', self.vm.name, 'poweroff'])
             self.report['vm_powered_off'] = 'VMState="poweroff"' in self.info()
             self.save()
             print(self.out/'result.json', flush=True)

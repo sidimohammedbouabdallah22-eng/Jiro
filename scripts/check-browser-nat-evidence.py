@@ -44,11 +44,19 @@ def check(path, package):
     if not __debug__:
         raise RuntimeError('verification requires assertions')
     out = path.parent
+    assert not (out/'measurement-invalid.json').exists(), 'measurement invalidated; retain as diagnostic evidence'
     report = json.loads(path.read_text())
+    assert not report.get('shutdown_forced',False), 'forced lab shutdown requires diagnostic review'
     endurance = report.get('abuse_endurance',False)
     rows = json.loads((out/'requests.json').read_text())
     files = json.loads((out/'files.json').read_text())
     assert (report.get('completed',False) if endurance else report['passed'])
+    if 'baseline_qualified' in report:
+        baseline = report['phases'][0]
+        assert baseline['name'] == 'nat-baseline'
+        assert report['baseline_qualified'] == all(baseline[key] for key in [
+            'browser_passed','integrity_passed','responsiveness_passed',
+            'coverage_passed','resource_budget_passed'])
     assert report['cleanup']['restored'] and report['lanes_cleanup']['stopped']
     assert report['vm_powered_off'] and report['original_cpu_restored']
     assert report['screen_only'] and not report['business_pilot_started']
@@ -117,6 +125,19 @@ def check(path, package):
         browser = json.loads(browser_path.read_text())
         assert browser['profile'] == phase['name'] and browser['browser_version']
         assert len(browser['waves']) == phase['waves']
+        schedule_version = browser.get('schedule_version',1)
+        assert schedule_version in [1,2]
+        if schedule_version == 2:
+            assert browser['interval_ms'] == 15000
+            previous_end = 0
+            for index,wave in enumerate(browser['waves']):
+                assert wave['wave'] == index
+                assert wave['scheduled_start_ms'] == index*browser['interval_ms']
+                assert wave['started_ms'] >= previous_end
+                assert wave['started_ms'] >= wave['scheduled_start_ms']
+                assert wave['start_delay_ms'] == max(0,wave['started_ms']-wave['scheduled_start_ms'])
+                previous_end = wave['started_ms']+wave['elapsed_ms']
+            assert previous_end <= browser['work_elapsed_ms'] <= phase['browser_active_seconds']*1000
         flows = browser['initial_uploads'][:]
         expected_users = {'lab-admin','lab-reader','customer@example.invalid'}
         browser_sessions = []
@@ -162,7 +183,7 @@ def check(path, package):
             if endurance:
                 body_rate = report.get('nat_limits',{}).get('client_body_kib_per_second',0)
                 body_burst = report.get('nat_limits',{}).get('client_body_burst_kib',0)
-                assert (body_rate,body_burst) in [(0,0),(160,3072),(160,4096)]
+                assert (body_rate,body_burst) in [(0,0),(160,2048),(160,3072),(160,4096)]
                 assert controls.get('client_body_kib_per_second',0) == body_rate
                 assert controls.get('client_body_burst_kib',0) == body_burst
         if endurance:
