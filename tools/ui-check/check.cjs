@@ -25,6 +25,14 @@ const listen = (server) =>
   new Promise((resolve) =>
     server.listen(0, "127.0.0.1", () => resolve(server.address().port)),
   );
+async function previousAuthenticatorCode(secret) {
+  // Keep the current counter unused for sign-in, with time to submit the previous one.
+  const remainingMs = 30000 - (Date.now() % 30000);
+  if (remainingMs < 5000) {
+    await new Promise(resolve => setTimeout(resolve, remainingMs + 100));
+  }
+  return authenticatorCode(secret, -1);
+}
 const freePort = async () => {
   const s = net.createServer();
   const p = await listen(s);
@@ -729,7 +737,7 @@ const freePort = async () => {
     await page.locator("#mfa-enrollment").waitFor({ state: "visible" });
     const mfaSecret = await page.locator("#mfa-secret").textContent();
     await page.locator("#mfa-password").fill(accountPassword);
-    await page.locator("#mfa-code").fill(authenticatorCode(mfaSecret, -1));
+    await page.locator("#mfa-code").fill(await previousAuthenticatorCode(mfaSecret));
     await page.locator("#mfa-enable").click();
     await page.locator("#login").waitFor({ state: "visible" });
     assert.equal(await page.locator("#mfa-secret").textContent(), "");
@@ -755,7 +763,7 @@ const freePort = async () => {
     await page.locator("#mfa-enrollment").waitFor({ state: "visible" });
     const policySecret = await page.locator("#mfa-secret").textContent();
     await page.locator("#mfa-password").fill(accountPassword);
-    await page.locator("#mfa-code").fill(authenticatorCode(policySecret, -1));
+    await page.locator("#mfa-code").fill(await previousAuthenticatorCode(policySecret));
     await page.locator("#mfa-enable").click();
     await page.locator("#login").waitFor({ state: "visible" });
     await localSignIn("administrator", accountPassword, authenticatorCode(policySecret));
@@ -786,7 +794,7 @@ const freePort = async () => {
     await page.locator("#mfa-enrollment").waitFor({ state: "visible" });
     const enrollmentSecret = await page.locator("#mfa-secret").textContent();
     await page.locator("#mfa-password").fill(accountPassword);
-    await page.locator("#mfa-code").fill(authenticatorCode(enrollmentSecret, -1));
+    await page.locator("#mfa-code").fill(await previousAuthenticatorCode(enrollmentSecret));
     await page.locator("#mfa-enable").click();
     await page.locator("#login").waitFor({ state: "visible" });
     await localSignIn("enrollment-admin", accountPassword, authenticatorCode(enrollmentSecret));
