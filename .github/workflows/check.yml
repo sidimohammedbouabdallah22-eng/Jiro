@@ -62,6 +62,7 @@ jobs:
       - run: node --test tools/application-check/browser-nat.test.cjs
       - run: python3 -m unittest discover -s scripts -p test_browser_nat_evidence.py
       - run: python3 -m unittest discover -s scripts -p test_owned_lab_environment.py
+      - run: python3 -m unittest discover -s scripts -p test_business_recovery.py
       - run: npx playwright install --with-deps chromium
         working-directory: tools/ui-check
       - run: node tools/ui-check/check.cjs

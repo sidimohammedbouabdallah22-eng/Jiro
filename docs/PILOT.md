@@ -19,6 +19,12 @@ Record representative authenticated workflows: sign-in/out, search, publishing o
 
 Start in an agreed observation/tuning phase if necessary. The qualifying window requires all protected policies to enforce and all required probes to pass. An observation-only period does not satisfy that window.
 
+The local coordinated business recovery rehearsal now passes for the selected
+candidate. It covers upstream databases/filesystems alongside WAF state in
+replacement containers on the same WSL2 host. Qualify the actual deployment's
+application backup, restore destination, credentials and downtime procedure
+before pilot entry. [Reference drill and remaining boundaries](M4-BUSINESS-RECOVERY.md).
+
 ## Evidence collector
 
 `scripts/pilot.py` uses Python's standard library. Copy and complete `config/pilot.example.json`; placeholders are rejected. Reference reviewed qualification and sizing evidence, and define 1–8 read-only canaries with explicit success status and reviewed SHA-256 response-body digests. Choose stable, meaningful application responses. Dynamic pages need a dedicated stable canary; hashing changing pages creates failures. The collector sends no application credentials and supports no redirect following. Authenticated business workflows require separate controlled probes and daily evidence references.

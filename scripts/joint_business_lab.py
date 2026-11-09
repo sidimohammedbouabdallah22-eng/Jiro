@@ -79,7 +79,8 @@ class Lab:
     def run(self, argv, data=None, timeout=180, check=True):
         p = subprocess.run([str(x) for x in argv], input=data, capture_output=True, text=True, timeout=timeout)
         if check and p.returncode:
-            (self.out / 'failure.private.txt').write_text(p.stdout + p.stderr)
+            with (self.out / 'failure.private.txt').open('a', encoding='utf-8') as stream:
+                stream.write('\nOwned command failure\n' + p.stdout + p.stderr)
             raise RuntimeError('owned lab command failed; inspect private evidence')
         return p
 

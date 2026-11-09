@@ -343,6 +343,17 @@ Capacity update on 4 November 2026: the first native colocated one-vCPU referenc
    counted; committed records reconcile. The actual recipient notification,
    timer scheduling and independent watchdog supervision remain deployment
    gates. [Alert transport, evidence and limits](docs/PILOT-ALERTS.md)
+   The upload-reservation candidate now passes coordinated cold business recovery
+   into isolated containers and WAF directories in the owned WSL2 lab. Both
+   business schemas and row sets, installed applications, document/custom volumes,
+   WAF history, journal and credentials verify. Eight real browser sessions and
+   eight upload round trips pass; original events survive and new delivery
+   reconciles. Exact volume ownership and database/executable readiness now have
+   dedicated regressions. This closes the controlled local business-data restore
+   drill. Fresh-host/current-package repetition, customer TLS/factor recovery,
+   deployed alerts, independent review and the actual pilot remain open.
+   [Business recovery qualification](docs/M4-BUSINESS-RECOVERY.md)
+
 5. **30 consecutive reviewed days:** collect bounded health/canary evidence and daily workflow/security-event reviews, investigate false blocks and unexplained passes, retain failures and restart the qualifying interval after blocking failures or coverage gaps. A synthetic month or short lab run does not satisfy elapsed observation.
 6. **Independent review and M4 exit:** obtain independent review of protocol/connector behavior, management authorization, identity/session handling, policy generation, secret storage and upgrade/recovery. Resolve release-blocking findings, record accepted residual limitations and review all evidence with the operator before declaring M4 complete. M5 release signing, provenance and support ownership remain separate gates.
 

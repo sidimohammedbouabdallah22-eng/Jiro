@@ -1,5 +1,18 @@
 # Progress toward an SMB deployment
 
+9 November 2026, coordinated business recovery passes. The selected upload-
+reservation build restores Dolibarr and PrestaShop schema/data, installed
+application state, document/custom volumes and WAF state into isolated
+replacement containers/directories in the same owned WSL2 lab. Eight real
+browser sessions and eight upload round trips pass. All 178 earlier files plus
+four pre-checkpoint files verify after recovery, followed by four new uploads.
+Two original security events survive exactly and two new blocks reach the
+receiver, with zero storage/delivery failures. Ten false qualification claims
+reject and twenty-eight focused checks pass. Source data and failed attempts
+remain retained, with the owned lab stopped. M4 remains open for selected-host
+repetition, customer TLS/factor recovery, alerts, independent review and the
+business pilot. [Recovery evidence and scope](M4-BUSINESS-RECOVERY.md).
+
 8 November 2026, upload-route reservation follow-up. The selected Jiro package
 passes the full twenty-one-minute WSL2 sequence, including all four five-minute
 abuse phases and shared-source uploads. Independent checks verify 19,503 requests,
