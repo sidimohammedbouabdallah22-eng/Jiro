@@ -27,6 +27,8 @@ def run():
     parser.add_argument("--package", type=Path, required=True)
     parser.add_argument("--disposable-vm", action="store_true", required=True)
     parser.add_argument("--cpus", type=int, choices=[1, 2], default=1)
+    parser.add_argument("--memory-mib", type=int, choices=[2048, 4096], default=2048)
+    parser.add_argument("--disk-gib", type=int, choices=[12, 32], default=12)
     parser.add_argument("--prepare-only", action="store_true", help="Prepare a clean OS only; does not pass fresh-install qualification")
     parser.add_argument("--vbox", default=r"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe")
     args = parser.parse_args()
@@ -91,7 +93,7 @@ def run():
                   script_sha256=hashlib.sha256((root / "scripts" / "qualify-fresh-vm.sh").read_bytes()).hexdigest(),
                   service_script_sha256=hashlib.sha256((root / "scripts" / "qualify-linux-service.sh").read_bytes()).hexdigest(),
                   passed=False,prepared=False,qualification_performed=not args.prepare_only,
-                  memory_mib=2048,provisioner_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+                  memory_mib=args.memory_mib,disk_gib=args.disk_gib,provisioner_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
     try:
         vbox("createvm", "--name", name, "--ostype", "Ubuntu_64", "--basefolder", stage, "--register")
         registered = True
@@ -101,8 +103,8 @@ def run():
         shutil.copyfile(image, source_copy)
         vbox("clonemedium", "disk", source_copy, stage / "system.vdi", "--format", "VDI")
         vbox("closemedium", "disk", source_copy)
-        vbox("modifymedium", "disk", stage / "system.vdi", "--resize", "12288")
-        vbox("modifyvm", name, "--memory", "2048", "--cpus", str(args.cpus), "--nic1", "nat",
+        vbox("modifymedium", "disk", stage / "system.vdi", "--resize", str(args.disk_gib * 1024))
+        vbox("modifyvm", name, "--memory", str(args.memory_mib), "--cpus", str(args.cpus), "--nic1", "nat",
              "--natpf1", f"ssh,tcp,127.0.0.1,{port},,22", "--audio-enabled", "off",
              "--uart1", "0x3F8", "4", "--uartmode1", "file", stage / "serial.log")
         vbox("storagectl", name, "--name", "SATA", "--add", "sata", "--controller", "IntelAhci")

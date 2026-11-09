@@ -7,10 +7,12 @@ The pilot is 30 consecutive days of observed, reviewed operation on an agreed co
 The selected package now passes controlled-backend fresh-OS restore on a new
 Ubuntu 24.04 VM, including application TLS and enrolled administrator factors.
 Its deployed alert rehearsal also verifies the shipped systemd schedules and
-watchdog notification while the sampler is stopped. These local proofs leave
-the actual business host, fresh-host business dependencies, deployment DNS/TLS
-chain, provider recovery, real recipient notification and watchdog supervision
-for deployment qualification. [Fresh-host evidence](M4-FRESH-HOST-RECOVERY.md),
+watchdog notification while the sampler is stopped. Dolibarr, PrestaShop and
+Jiro also pass coordinated recovery on a separately provisioned Ubuntu OS.
+These local proofs leave the actual business host, deployment DNS/TLS chain,
+provider recovery, real recipient notification and watchdog supervision for
+deployment qualification. [Business recovery](M4-BUSINESS-RECOVERY.md),
+[fresh-host evidence](M4-FRESH-HOST-RECOVERY.md),
 [alert evidence](PILOT-ALERTS.md).
 
 Choose a named operator, a continuously available host, a protected business application, an identity provider and a maintenance/recovery window. Review the supported protocols, backend bypass prevention, TLS, capacity/headroom, application workflows, monitoring and backup destination. Establish an independent alert path and a way to stop or roll back the pilot. Keep administration on loopback through a managed tunnel when necessary.

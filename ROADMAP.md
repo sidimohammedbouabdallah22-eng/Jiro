@@ -362,9 +362,17 @@ Capacity update on 4 November 2026: the first native colocated one-vCPU referenc
    systemd timers and missing-sample delivery with the sampler stopped. Fourteen
    alert transitions acknowledge. The fixture ownership guard now recognizes
    both owned layouts with exact service identities and six regressions.
-   Next qualify business dependencies on a fresh host, actual deployment
-   DNS/certificate/provider recovery, recipient notification and supervision of
-   the watchdog itself. Independent review and the pilot remain open.
+   A subsequent coordinated business repetition passes on a different stock
+   Ubuntu VM with the source WSL2 distro stopped. Both database schemas/row sets,
+   application images, document/custom volumes and Jiro restore from the cold
+   checkpoint. All 182 existing files and four new upload round trips verify.
+   Four browser sessions and 164 requests pass, with all four security records
+   reconciled and zero storage/delivery failures. Ten false claims reject.
+   This closes the controlled fresh-OS business recovery gate for the selected
+   package. Next qualify actual deployment DNS/certificate/provider recovery,
+   recipient notification and supervision of the watchdog itself. Independent
+   review and the pilot remain open.
+   [Business recovery proof](docs/M4-BUSINESS-RECOVERY.md)
    [Fresh-host proof](docs/M4-FRESH-HOST-RECOVERY.md),
    [alert proof](docs/PILOT-ALERTS.md)
 

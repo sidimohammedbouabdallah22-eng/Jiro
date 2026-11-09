@@ -1,5 +1,17 @@
 # Current source and qualification ledger
 
+9 November 2026, coordinated fresh-host business recovery passes on a new
+one-vCPU/four-GiB Ubuntu 24.04 VM. Both databases, installed applications,
+document/custom volumes and Jiro restore from the retained cold checkpoint,
+with the source distro stopped and absent source containers on the target.
+All 182 existing files verify, followed by four exact new upload round trips.
+Four browser sessions and 164 requests pass. All four security events reconcile,
+including both original records and two new blocks. Ten invalid claims reject.
+The independent checker verifies retained SQL, volume, binary and database bytes.
+Actual deployment TLS/provider recovery,
+operator notifications, watchdog supervision, independent review and the pilot
+remain open. [Fresh-host business proof](M4-BUSINESS-RECOVERY.md).
+
 9 November 2026, current-package operational repetition passes. Three power cuts,
 replacement restore and upgrade/rollback pass. A new stock Ubuntu 24.04 OS then
 restores WAF state, verified application TLS, enrolled administrator factors and

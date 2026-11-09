@@ -30,9 +30,13 @@ database and archive bytes independently of the runner's success flag.
 
 This qualifies the controlled-backend WAF recovery procedure on the current
 package. Business database recovery has separate same-host WSL2 evidence.
-Fresh-host business dependencies, the eventual deployment's DNS/certificate
-chain and identity-provider recovery, independent review and the pilot remain
-open. The retained passkey proof uses a synthetic authenticator.
+The subsequent coordinated Dolibarr/PrestaShop/Jiro repetition passes on
+another fresh Ubuntu VM, with both business databases, installed applications
+and document/custom volumes restored from the cold checkpoint.
+[Business recovery proof](M4-BUSINESS-RECOVERY.md).
+The eventual deployment's DNS/certificate chain and identity-provider recovery,
+independent review and the pilot remain open. The retained passkey proof uses
+a synthetic authenticator.
 
 ## Earlier candidate, 5 November 2026
 

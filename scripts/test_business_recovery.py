@@ -2,6 +2,8 @@
 import io
 import hashlib
 import json
+import sys
+import subprocess
 from pathlib import Path
 import tarfile
 import tempfile
@@ -9,7 +11,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from m4_business_recovery_guest import await_database, await_executable, restore_volume, verify_checkpoint, volume_inventory
+from m4_business_recovery_guest import await_database, await_executable, restore, restore_volume, verify_checkpoint, volume_inventory
 from joint_business_lab import Lab
 
 
@@ -26,6 +28,31 @@ def archive_member(name='file.csv', data=b'owned fixture', kind=tarfile.REGTYPE,
 
 
 class BusinessRecoveryTests(unittest.TestCase):
+    def test_fresh_host_entrypoints_refuse_optimized_python(self):
+        for name in ['qualify-fresh-business-recovery.py', 'm4_fresh_business_guest.py',
+                     'check-fresh-business-evidence.py']:
+            with self.subTest(script=name):
+                result = subprocess.run([sys.executable, '-O', str(Path(__file__).with_name(name)), '--help'],
+                    capture_output=True, text=True, timeout=20)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn('requires assertions', result.stderr)
+
+    def test_fresh_host_rejects_invalid_preconditions_before_mutation(self):
+        baseline = dict(clean_os=True, empty_docker=True, machine_id='target',
+                        source_machine_id='source', checkpoint_sha256='checkpoint')
+        for changed in [dict(clean_os=False), dict(empty_docker=False),
+                        dict(source_machine_id='target'), dict(checkpoint_sha256='different')]:
+            with self.subTest(changed=changed), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                (root / 'fresh-host-preconditions.json').write_text(json.dumps(dict(baseline, **changed)))
+                with patch.dict(sys.modules, pwd=SimpleNamespace(), m4_business_guest=SimpleNamespace(wait=None)), \
+                     patch('m4_business_recovery_guest.verify_checkpoint', return_value=(root, {})), \
+                     patch('m4_business_recovery_guest.digest', return_value='target'), \
+                     patch('m4_business_recovery_guest.run') as command:
+                    with self.assertRaises(AssertionError):
+                        restore(root, {}, 'checkpoint', fresh_host=True)
+                    command.assert_not_called()
+
     def test_exact_bytes_and_ownership_affect_inventory(self):
         first = volume_inventory(archive_member())
         changed = volume_inventory(archive_member(data=b'changed'))

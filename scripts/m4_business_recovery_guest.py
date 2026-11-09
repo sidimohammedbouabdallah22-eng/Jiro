@@ -253,10 +253,16 @@ def verify_checkpoint(root, expected):
     return checkpoint, manifest
 
 
-def restore(root, fixture, expected):
+def restore(root, fixture, expected, fresh_host=False):
     import pwd
     from m4_business_guest import wait
     backup, manifest = verify_checkpoint(root, expected)
+    if fresh_host:
+        preconditions = json.loads((root / 'fresh-host-preconditions.json').read_text())
+        assert preconditions['clean_os'] and preconditions['empty_docker']
+        assert preconditions['machine_id'] == digest('/etc/machine-id')
+        assert preconditions['machine_id'] != preconditions['source_machine_id']
+        assert preconditions['checkpoint_sha256'] == expected
     restored = root / 'recovered-waf'
     if restored.exists():
         raise RuntimeError('recovery destination already exists')
@@ -264,11 +270,16 @@ def restore(root, fixture, expected):
         for kind in ('app', 'db'):
             assert run(['docker', 'inspect', prefix(root) + '-' + app + '-' + kind], check=False).returncode != 0
     run(['docker', 'image', 'load', '--input', backup / 'images.private.tar'], timeout=900)
-    result = dict(applications={}, source_containers_stopped=True)
+    result = dict(applications={}, source_containers_stopped=not fresh_host,
+                  source_containers_absent=fresh_host)
     for app in APPS:
         spec = manifest['apps'][app]
         assert json.loads(run(['docker', 'image', 'inspect', spec['snapshot_image']]).stdout)[0]['Id'] == spec['snapshot_image']
-        assert all(not inspect(name)['State']['Running'] for name in spec['source'].values())
+        if fresh_host:
+            assert all(run(['docker', 'inspect', name], check=False).returncode != 0
+                       for name in spec['source'].values())
+        else:
+            assert all(not inspect(name)['State']['Running'] for name in spec['source'].values())
         network = prefix(root) + '-' + app + '-net'
         run(['docker', 'network', 'create', '--internal', '--label', 'jiro.recovery=' + prefix(root), network])
         names = {kind:prefix(root) + '-' + app + '-' + kind for kind in ('db', 'app')}
@@ -344,6 +355,9 @@ def restore(root, fixture, expected):
     run(['runuser', '-u', 'openwaf', '--', 'test', '-r', restored / 'state/policy.json'])
     for kind in ('gateway', 'collector'):
         text = (backup / 'services' / kind).read_text()
+        if fresh_host:
+            text = text.replace(fixture['recovery_source_root'], str(root))
+            text = text.replace(fixture['recovery_source_tag'], root.name.rsplit('-', 1)[1])
         text = text.replace(str(root / 'state'), str(restored / 'state'))
         text = text.replace(str(root / 'waf-server'), str(restored / 'bin/waf-server'))
         text = text.replace(str(root / 'event-collector'), str(restored / 'event-collector'))

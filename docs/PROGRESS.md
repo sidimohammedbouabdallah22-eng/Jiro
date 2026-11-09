@@ -1,5 +1,16 @@
 # Progress toward an SMB deployment
 
+9 November 2026, Dolibarr, PrestaShop and Jiro pass coordinated recovery on a
+new stock Ubuntu 24.04 VM with the source WSL2 distro stopped. Both database
+schemas/row sets and application volumes match the checkpoint. All 182 existing
+files survive, followed by four new exact upload/download round trips. Four
+browser sessions and 164 requests pass. All four security records reconcile
+with zero storage/delivery failures. Ten invalid qualification claims reject.
+The independent byte-level checker passes. The VM and source distro end stopped.
+This closes the controlled fresh-OS business recovery gate. Actual deployment
+configuration, notifications/supervision, independent review and the pilot remain
+open. [Evidence, reproduction and scope](M4-BUSINESS-RECOVERY.md).
+
 9 November 2026, the selected package passes three power cuts, replacement
 restore, upgrade/rollback and fresh-OS recovery on a newly provisioned Ubuntu
 24.04 VM. Verified application TLS, administrator passkey/TOTP, scoped tokens
