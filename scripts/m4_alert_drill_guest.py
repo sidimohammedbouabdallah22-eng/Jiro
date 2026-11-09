@@ -98,6 +98,13 @@ def main():
         text=text.replace('[Service]','StartLimitIntervalSec=0\n\n[Service]')
         if kind=='pilot': text+=f'\nEnvironment=SSL_CERT_FILE={root}/probes/ca.pem\n'
         Path('/etc/systemd/system/'+name).write_text(text)
+    timers = []
+    for kind in ['pilot', 'pilot-alerts']:
+        name = units[kind].replace('.service', '.timer')
+        text = (scripts / ('openwaf-' + kind + '.timer')).read_text()
+        text = text.replace('Unit=openwaf-' + kind + '.service', 'Unit=' + units[kind])
+        Path('/etc/systemd/system/' + name).write_text(text)
+        timers.append(name)
     command(['systemctl','daemon-reload']);command(['systemctl','start',receiver_unit])
     command(['runuser','-u',user,'--','test','-r',scripts/'pilot.py'])
     report=dict(passed=False,package_sha256=args.package_sha256,server_sha256=args.server_sha256,cases=[],scope='owned Ubuntu amd64 systemd services and isolated webhook receiver',business_pilot_started=False,real_operator_delivery_qualified=False)
@@ -214,6 +221,46 @@ def main():
         path=root/'probes/evidence.db';path.chmod(0o000)
         result=command(['systemctl','start',units['pilot-alerts']],check=False);assert result.returncode!=0
         path.chmod(0o600);phase('evidence-read-recovery',True)
+        # Run the shipped schedules with real wall time and no manual service
+        # starts. The independent watchdog must also run with sampling stopped.
+        timer_started = time.time()
+        with closing(sqlite3.connect(root/'probes/evidence.db')) as db:
+            samples_before = db.execute('SELECT count(*) FROM samples').fetchone()[0]
+        command(['systemctl', 'start', *timers])
+        deadline = time.monotonic() + 90
+        while time.monotonic() < deadline:
+            with closing(sqlite3.connect(root/'probes/evidence.db')) as db:
+                samples_after = db.execute('SELECT count(*) FROM samples').fetchone()[0]
+            with closing(sqlite3.connect(root/'alerts/outbox.db')) as db:
+                last_poll = db.execute('SELECT last_poll FROM meta').fetchone()[0]
+            if samples_after > samples_before and last_poll > timer_started:
+                break
+            time.sleep(1)
+        else:
+            raise RuntimeError('shipped timers did not execute both services')
+        command(['systemctl', 'stop', timers[0], units['pilot']])
+        with closing(sqlite3.connect(root/'probes/evidence.db')) as db:
+            last_sample = db.execute('SELECT max(finished) FROM samples').fetchone()[0]
+        deadline = time.monotonic() + pilot.MAX_GAP + 90
+        while time.monotonic() < deadline:
+            with closing(sqlite3.connect(root/'alerts/outbox.db')) as db:
+                active = json.loads(db.execute('SELECT active FROM meta').fetchone()[0])
+                missing = db.execute('SELECT payload FROM outbox WHERE acked=1 ORDER BY seq DESC LIMIT 1').fetchone()
+            if active and active['reason'] == 'samples_missing' and missing:
+                notification = json.loads(missing[0])
+                if notification['event'] == 'firing' and notification['reason'] == 'samples_missing':
+                    break
+            time.sleep(1)
+        else:
+            raise RuntimeError('watchdog timer did not deliver missing-sample alert')
+        command(['systemctl', 'stop', timers[1], units['pilot-alerts']])
+        report['timers'] = dict(started=timer_started, samples_before=samples_before,
+            samples_after=samples_after, last_sample=last_sample,
+            firing_event_id=notification['event_id'], firing_observed_at=notification['observed_at'],
+            sampler_stopped=True, watchdog_independent=True)
+        # Preserve the original fourteen fault cases. This extra healthy sample
+        # resolves the timer-induced outage before the stopped capture.
+        phase('timer-sampling-recovery', True)
         report.update(passed=True,wrong_ack_retried_same_identity=True,receiver_deduplicated=True,storage_fault_unacknowledged_attempts=1)
         helper.wait_ready(fixture,drain=True);snapshot=helper.snapshot(fixture);helper.verify(fixture,snapshot)
         report['delivery_verification']=dict(events=len(snapshot['events']),audit_records=len(snapshot['audit']))
@@ -221,7 +268,7 @@ def main():
         (root/'tls/key.pem').write_bytes(key)
         for unit in [fixture['events_unit'],fixture['audit_unit']]:
             command(['systemctl','kill','--signal=SIGCONT',unit],check=False)
-        command(['systemctl','stop',units['pilot'],units['pilot-alerts'],'openwaf.service',*fixture['units'],receiver_unit],check=False)
+        command(['systemctl','stop',*timers,units['pilot'],units['pilot-alerts'],'openwaf.service',*fixture['units'],receiver_unit],check=False)
         if mounted:
             # Keep the failed database before unmounting this owned tmpfs.
             shutil.copyfile(root/'fault-storage/events.db',root/'events.failed-storage.db')

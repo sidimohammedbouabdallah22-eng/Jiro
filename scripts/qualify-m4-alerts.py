@@ -26,9 +26,9 @@ def main():
     spec=importlib.util.spec_from_file_location('permissions',repo/'scripts/qualify-applications.py')
     permissions=importlib.util.module_from_spec(spec);spec.loader.exec_module(permissions);permissions.restrict_artifacts(out)
     source=out/'source';source.mkdir();hashes={}
-    for relative in ['scripts/qualify-m4-alerts.py','scripts/m4_alert_drill_guest.py','scripts/m4_alert_receiver.py','scripts/m2_guest.py','scripts/pilot.py','scripts/pilot_alerts.py','deploy/linux/openwaf-pilot.service','deploy/linux/openwaf-pilot-alerts.service']:
+    for relative in ['scripts/qualify-m4-alerts.py','scripts/m4_alert_drill_guest.py','scripts/m4_alert_receiver.py','scripts/m2_guest.py','scripts/pilot.py','scripts/pilot_alerts.py','deploy/linux/openwaf-pilot.service','deploy/linux/openwaf-pilot-alerts.service','deploy/linux/openwaf-pilot.timer','deploy/linux/openwaf-pilot-alerts.timer']:
         path=repo/relative;data=path.read_bytes();(source/path.name).write_bytes(data);hashes[relative]=hashlib.sha256(data).hexdigest()
-    report=dict(passed=False,vm=args.vm,package_sha256=package_sha,server_sha256=server_sha,sources=hashes)
+    report=dict(passed=False,vm=args.vm,package_sha256=package_sha,server_sha256=server_sha,sources=hashes,timers_required=True)
     vbox=r'C:\Program Files\Oracle\VirtualBox\VBoxManage.exe'
     def run(argv,timeout=120,check=True):
         result=subprocess.run([str(x) for x in argv],capture_output=True,text=True,timeout=timeout)

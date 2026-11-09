@@ -1,5 +1,29 @@
 # Corrected-build recovery rehearsal
 
+## Selected upload-reservation build, 9 November 2026
+
+`artifacts/m2-operational-9dffe4f1/result.json` passes the full functional
+recovery sequence on the owned Ubuntu 24.04 VM with one vCPU and 4 GiB RAM.
+Its retained source hashes and report pass `check-m4-recovery-evidence.py`,
+using this combined run for both full interruption and replacement coverage.
+
+The current package is `f7efe1e953fac810f932bb7f59fe373b0fb2b0577b328ecca40b33bd3c097063`,
+with server `75ee8698e1ef1b5e5bf9e039943d6d2e80e3076354cee343d5dc67a8c38ad3d8`.
+The previous package is `d382caa1fd25f747611c292fa51b57f498c49e02c34488e79509b2944bd99c13`,
+with server `70d3e58d0ca98c1d104c719fb2beca0c535955dae3d8ad621528db2b9490f56b`.
+Archive sidecars and distinct guest executable hashes verify before activation.
+
+Three abrupt power cuts interrupt active journaled requests. Previously
+acknowledged event and administration bytes survive each interruption. Passkey,
+TOTP, viewer login, scoped-token and application-isolation checks pass across
+recovery. The replacement verifies twelve security events, 122 administration
+records, all six deployment assets and six historical service definitions.
+The previous-to-current upgrade and coordinated rollback both pass.
+The later checkpoint is preserved separately before rollback selects revision 2.
+
+The separate current-package fresh-OS repetition also passes.
+[Fresh-host evidence and remaining deployment scope](M4-FRESH-HOST-RECOVERY.md).
+
 ## Exact upgrade and rollback pair
 
 The 4 November 2026 functional operational run passed on the owned Ubuntu 24.04

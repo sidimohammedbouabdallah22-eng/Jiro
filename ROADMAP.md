@@ -354,6 +354,20 @@ Capacity update on 4 November 2026: the first native colocated one-vCPU referenc
    deployed alerts, independent review and the actual pilot remain open.
    [Business recovery qualification](docs/M4-BUSINESS-RECOVERY.md)
 
+   **9 November current-package repetition** passes three abrupt power cuts,
+   replacement restore and upgrade/rollback. A new stock Ubuntu 24.04 OS restores
+   the selected WAF executable, application TLS assets, enrolled administrator
+   factors, policy/history, eighteen final security records and 151 final audit
+   records. Fifteen alert cases pass on that target, including the shipped
+   systemd timers and missing-sample delivery with the sampler stopped. Fourteen
+   alert transitions acknowledge. The fixture ownership guard now recognizes
+   both owned layouts with exact service identities and six regressions.
+   Next qualify business dependencies on a fresh host, actual deployment
+   DNS/certificate/provider recovery, recipient notification and supervision of
+   the watchdog itself. Independent review and the pilot remain open.
+   [Fresh-host proof](docs/M4-FRESH-HOST-RECOVERY.md),
+   [alert proof](docs/PILOT-ALERTS.md)
+
 5. **30 consecutive reviewed days:** collect bounded health/canary evidence and daily workflow/security-event reviews, investigate false blocks and unexplained passes, retain failures and restart the qualifying interval after blocking failures or coverage gaps. A synthetic month or short lab run does not satisfy elapsed observation.
 6. **Independent review and M4 exit:** obtain independent review of protocol/connector behavior, management authorization, identity/session handling, policy generation, secret storage and upgrade/recovery. Resolve release-blocking findings, record accepted residual limitations and review all evidence with the operator before declaring M4 complete. M5 release signing, provenance and support ownership remain separate gates.
 

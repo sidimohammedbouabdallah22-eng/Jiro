@@ -1,5 +1,18 @@
 # Current source and qualification ledger
 
+9 November 2026, current-package operational repetition passes. Three power cuts,
+replacement restore and upgrade/rollback pass. A new stock Ubuntu 24.04 OS then
+restores WAF state, verified application TLS, enrolled administrator factors and
+authorization. All eighteen final security records and 151 final administration
+records reconcile. Fifteen deployed alert cases pass on that target, including
+shipped systemd timers and watchdog notification with sampling stopped. Fourteen
+alert transitions acknowledge and ten false alert claims reject. A fixture-layout
+guard defect is corrected with six regressions. The selected runtime stays the
+same. Fresh-host business dependencies, actual deployment certificates/provider
+recovery, recipient notification, watchdog supervision, independent review and
+the pilot remain open. [Fresh-host proof](M4-FRESH-HOST-RECOVERY.md),
+[operational proof](M4-RECOVERY-REHEARSAL.md), [alerts](PILOT-ALERTS.md).
+
 9 November 2026, coordinated business recovery passes. The selected upload-
 reservation build restores Dolibarr and PrestaShop schema/data, installed
 application state, document/custom volumes and WAF state into isolated

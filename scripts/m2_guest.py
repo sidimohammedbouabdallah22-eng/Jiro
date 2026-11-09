@@ -109,18 +109,24 @@ def set_services(root, fixture, version, state=None, receiver=None):
     command(["systemctl", "daemon-reload"])
 
 
+def previous_fixture(override):
+    match = re.search(r"-config=(/var/lib/owaf-(m2|fresh)-([a-f0-9]{8}))/", override.read_text())
+    if not match:
+        raise RuntimeError("existing override is outside the owned qualification fixture")
+    old_root = Path(match[1])
+    old = json.loads((old_root / "fixture.json").read_text())
+    expected = {f"openwaf-{match[2]}-{kind}-{match[3]}.service" for kind in ["backend", "events", "audit"]}
+    if len(old["units"]) != 3 or set(old["units"]) != expected:
+        raise RuntimeError("existing fixture has unexpected service identities")
+    return old_root, old
+
+
 def setup(root, current, previous):
     if root.exists():
         raise RuntimeError("operational fixture already exists")
     override = Path("/etc/systemd/system/openwaf.service.d/99-m2-operational.conf")
     if override.exists():
-        match = re.search(r"-config=(/var/lib/owaf-m2-[a-f0-9]{8})/", override.read_text())
-        if not match:
-            raise RuntimeError("existing override is outside the owned qualification fixture")
-        old_root = Path(match[1])
-        old = json.loads((old_root / "fixture.json").read_text())
-        if not all(re.fullmatch(r"openwaf-m2-(backend|events|audit)-[a-f0-9]{8}\.service", unit) for unit in old["units"]):
-            raise RuntimeError("existing fixture has unexpected service identities")
+        old_root, old = previous_fixture(override)
         command(["systemctl", "stop", "openwaf.service", *old["units"]])
         command(["systemctl", "disable", *old["units"]])
         archive = override.with_name("98-m2-archived-" + old_root.name.rsplit("-", 1)[1] + ".disabled")

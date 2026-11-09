@@ -1,5 +1,42 @@
 # Pilot fault detection and webhook delivery
 
+## Current-package deployment rehearsal, 9 November 2026
+
+`artifacts/m4-alerts-23909912/result.json` and `verification.json` pass on
+`openwaf-m2-24.04-0de3d6f6`, the separately provisioned Ubuntu 24.04 amd64
+target used for the current-package fresh-host restore. Package SHA-256 is
+`f7efe1e953fac810f932bb7f59fe373b0fb2b0577b328ecca40b33bd3c097063`,
+and server SHA-256 is
+`75ee8698e1ef1b5e5bf9e039943d6d2e80e3076354cee343d5dc67a8c38ad3d8`.
+The run ends with the VM powered off and preserves private evidence.
+
+All fourteen earlier fault cases pass on this package, followed by timer-driven
+sampling, watchdog execution, missing-sample notification with the sampler and
+its timer stopped, and a fifteenth healthy recovery case. The shipped timer
+intervals remain intact. Only their target service names change to the owned
+fixture names. Both timer templates join the frozen measurement sources.
+The timer stage starts services through their schedules and waits real wall time.
+
+Fourteen alert transitions receive exact acknowledgements. One retried identity
+is deduplicated. Three committed security events and all 33 final administration
+records match independent receiver bytes. One intentional disk-full write is
+unacknowledged and remains explicitly counted. The checker also verifies the
+timer-stage sample counts, missing-sample event ID/timing and subsequent
+resolution against captured databases. Ten invalid report mutations reject.
+
+The first attempt, `m4-alerts-3627e2b9`, stopped before fault injection because
+the fixture ownership guard only recognized the older operational layout.
+The corrected guard accepts both owned layouts and requires the exact three
+service names to match their layout and fixture tag. Six regressions cover both
+valid layouts, external paths, mismatched tags/namespaces and duplicate services.
+Fourteen existing pilot/watchdog tests and ten business-recovery tests also pass.
+
+The receiver is the isolated lab webhook. Real recipient delivery, supervision
+of the watchdog itself, actual deployment certificates/provider recovery,
+independent review and the reviewed business pilot remain open.
+
+## Watchdog operation
+
 `scripts/pilot_alerts.py` runs independently of pilot sampling. It reads the
 manifest-pinned pilot evidence database and durably queues failure/recovery
 transitions. It detects failed samples, evidence unavailable to its account,

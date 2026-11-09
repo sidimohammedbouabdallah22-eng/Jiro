@@ -36,8 +36,16 @@ def proof(report,package_sha,server_sha):
     assert drill['wrong_ack_retried_same_identity'] and drill['receiver_deduplicated']
     assert drill['storage_fault_unacknowledged_attempts']==1
     cases={case['name']:case for case in drill['cases']}
-    assert len(cases)==len(drill['cases'])==len(EXPECTED) and set(cases)==set(EXPECTED)
-    for name,healthy in EXPECTED.items():
+    expected = dict(EXPECTED)
+    if report.get('timers_required'):
+        expected['timer-sampling-recovery'] = True
+        timers = drill['timers']
+        assert timers['sampler_stopped'] and timers['watchdog_independent']
+        assert timers['samples_after'] > timers['samples_before']
+        assert timers['last_sample'] >= timers['started']
+        assert timers['firing_observed_at'] - timers['last_sample'] > 180
+    assert len(cases)==len(drill['cases'])==len(expected) and set(cases)==set(expected)
+    for name,healthy in expected.items():
         case=cases[name];assert case['healthy']==healthy
         if name=='missing-samples-real-time':
             assert case['waited_seconds']>180 and case['reason']=='samples_missing'
@@ -92,6 +100,18 @@ def check(path,package):
     samples=pilot.execute('SELECT started,finished,healthy,detail FROM samples ORDER BY started').fetchall()
     assert sum(not row[2] for row in samples)>=6 and samples[-1][2]==1
     assert any(right[0]-left[1]>180 for left,right in zip(samples,samples[1:]))
+    if report.get('timers_required'):
+        timers = report['drill']['timers']
+        firing = next(event for event in events if event['event_id'] == timers['firing_event_id'])
+        assert firing['reason'] == 'samples_missing' and firing['event'] == 'firing'
+        assert firing['observed_at'] == timers['firing_observed_at']
+        automatic = [row for row in samples if timers['started'] <= row[0] < firing['observed_at']]
+        assert automatic and all(row[2] for row in automatic)
+        assert max(row[1] for row in automatic) == timers['last_sample']
+        assert timers['samples_before'] == sum(row[0] < timers['started'] for row in samples)
+        assert timers['samples_after'] == timers['samples_before'] + len(automatic)
+        assert any(event['event'] == 'resolved' and event['reason'] == 'samples_missing'
+                   and event['observed_at'] > firing['observed_at'] for event in events)
     secrets=[data[name].strip() for name in ['probes/monitor-token','probes/webhook-token','alert-receiver/token']]
     for name in ['probes/evidence.db','alerts/outbox.db','alert-receiver/receipts.db']:
         assert all(secret not in data[name] for secret in secrets)
@@ -110,6 +130,12 @@ def check(path,package):
                lambda r:r.update(server_sha256='0'*64),lambda r:r['drill'].update(real_operator_delivery_qualified=True),
                lambda r:r['drill'].update(storage_fault_unacknowledged_attempts=0),
                lambda r:r['drill'].update(receiver_deduplicated=False),lambda r:r['drill'].update(cases=[])]
+    if report.get('timers_required'):
+        mutations.extend([
+            lambda r:r['drill']['timers'].update(watchdog_independent=False),
+            lambda r:r['drill']['timers'].update(samples_after=r['drill']['timers']['samples_before']),
+            lambda r:r['drill']['timers'].update(firing_observed_at=r['drill']['timers']['last_sample']),
+        ])
     for mutate in mutations:
         changed=copy.deepcopy(report);mutate(changed)
         try:proof(changed,package_sha,server_sha)
@@ -117,9 +143,10 @@ def check(path,package):
         raise AssertionError('invalid alert evidence accepted')
     for connection in [pilot,outbox,receiver,sender,collected,audit]:connection.close()
     result=dict(passed=True,report=str(path),checker_sha256=sha(Path(__file__).read_bytes()),
-                deployed_cases=len(EXPECTED),acknowledged_alert_transitions=len(rows),deduplicated_retry_ids=len(duplicates),
+                deployed_cases=len(report['drill']['cases']),acknowledged_alert_transitions=len(rows),deduplicated_retry_ids=len(duplicates),
                 security_records_delivered=len(source_rows),audit_records_delivered=len(records),
                 intentional_unacknowledged_storage_fault_attempts=1,invalid_proofs_rejected=len(mutations),
+                shipped_timers_qualified=bool(report.get('timers_required')),
                 real_operator_delivery_qualified=False,business_pilot_started=False)
     (out/'verification.json').write_text(json.dumps(result,indent=2)+'\n')
     (out/'source/check-alert-evidence.py').write_bytes(Path(__file__).read_bytes())

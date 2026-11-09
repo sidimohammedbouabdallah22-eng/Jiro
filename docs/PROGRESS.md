@@ -1,5 +1,18 @@
 # Progress toward an SMB deployment
 
+9 November 2026, the selected package passes three power cuts, replacement
+restore, upgrade/rollback and fresh-OS recovery on a newly provisioned Ubuntu
+24.04 VM. Verified application TLS, administrator passkey/TOTP, scoped tokens
+and application isolation survive recovery. All eighteen final security records
+and 151 administration records reconcile. Fifteen alert cases pass, including
+the shipped systemd timers and missing-sample delivery while sampling is stopped.
+Fourteen alert transitions acknowledge. The fixture ownership guard now supports
+both owned layouts with exact service identities and six regression checks.
+The runtime package remains unchanged. M4 remains open for fresh-host business
+dependencies, actual deployment TLS/provider recovery and notifications,
+watchdog supervision, independent review and the reviewed business pilot.
+[Fresh-host qualification](M4-FRESH-HOST-RECOVERY.md), [alerts](PILOT-ALERTS.md).
+
 9 November 2026, coordinated business recovery passes. The selected upload-
 reservation build restores Dolibarr and PrestaShop schema/data, installed
 application state, document/custom volumes and WAF state into isolated

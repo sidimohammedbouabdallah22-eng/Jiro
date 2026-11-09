@@ -1,6 +1,42 @@
 # Fresh-host recovery qualification
 
-The 5 November 2026 drill passes for the current candidate on a separately
+## Selected upload-reservation build, 9 November 2026
+
+The selected package passes fresh-OS recovery in
+`artifacts/m4-fresh-restore-da9e1f8e/result.json` and `verification.json`.
+Package SHA-256 is
+`f7efe1e953fac810f932bb7f59fe373b0fb2b0577b328ecca40b33bd3c097063`.
+The restored server SHA-256 is
+`75ee8698e1ef1b5e5bf9e039943d6d2e80e3076354cee343d5dc67a8c38ad3d8`.
+
+The donor is `openwaf-m2-24.04-af0a1646`, with operational fixture
+`owaf-m2-9dffe4f1`. The new target is `openwaf-m2-24.04-0de3d6f6`, provisioned
+from the same verified stock Ubuntu 24.04 image identified below. Its one vCPU
+and 2 GiB RAM support this functional rehearsal. Both VMs finish powered off.
+
+The clean-OS preconditions, distinct machine identity and donor-off activation
+checks pass. All six deployment assets retain their hashes and restricted modes.
+TLS verification remains enabled for both application names. The original
+localhost management origin is retained through a new SSH tunnel. Browser
+passkey/TOTP authentication advances the restored counter from six to seven.
+Viewer password login, scoped automation access and application isolation pass.
+
+All sixteen checkpoint security events and 139 administration records survive.
+The independent audit receiver preserves all 149 newer receipts from the stopped
+donor. Two new blocks produce eighteen matching security records, with empty
+outboxes. All 151 final journal records reach the audit receiver, including
+shutdown. Twelve invalid proof mutations reject. The checker verifies retained
+database and archive bytes independently of the runner's success flag.
+
+This qualifies the controlled-backend WAF recovery procedure on the current
+package. Business database recovery has separate same-host WSL2 evidence.
+Fresh-host business dependencies, the eventual deployment's DNS/certificate
+chain and identity-provider recovery, independent review and the pilot remain
+open. The retained passkey proof uses a synthetic authenticator.
+
+## Earlier candidate, 5 November 2026
+
+The 5 November 2026 drill passes for its recorded candidate on a separately
 provisioned Ubuntu 24.04 amd64 VirtualBox OS with one vCPU and 2 GiB RAM.
 This closes the controlled-backend fresh-host lab gate. M4 and the business
 pilot remain open.
